@@ -1,1 +1,1 @@
-Aurora Staging environment
+Aurora - The BodyBuilding Schedule App
