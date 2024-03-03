@@ -46,15 +46,15 @@ public class SignUpActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
 
             // Firebase register user
-            TextInputEditText text_username = findViewById(R.id.text_username);
+//            TextInputEditText text_username = findViewById(R.id.text_username);
             TextInputEditText text_email = findViewById(R.id.text_email);
             TextInputEditText text_password = findViewById(R.id.text_password);
 
-            String username = String.valueOf(text_username.getText());
+//            String username = String.valueOf(text_username.getText());
             String email = String.valueOf(text_email.getText());
             String password = String.valueOf(text_password.getText());
 
-            if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(SignUpActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
             }
