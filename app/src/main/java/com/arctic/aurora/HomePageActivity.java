@@ -46,6 +46,7 @@ public class HomePageActivity extends AppCompatActivity {
         explore.setOnClickListener(btn_explore);
 
         ImageView setting = findViewById(R.id.setting);
+        setting.setOnClickListener(btn_setting);
 
 
 
