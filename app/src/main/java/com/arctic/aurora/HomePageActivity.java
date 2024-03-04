@@ -92,10 +92,7 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_setting = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            setBtnColor(explore, R.color.gray_light);
-            setBtnColor(mart, R.color.gray_light);
-            setBtnColor(program, R.color.gray_light);
-            // startActivity(new Intent(getApplicationContext(), SettingActivity.class));
+            startActivity(new Intent(getApplicationContext(), SettingActivity.class));
         }
     };
     public void setBtnColor(Button btn, int colorId) {
