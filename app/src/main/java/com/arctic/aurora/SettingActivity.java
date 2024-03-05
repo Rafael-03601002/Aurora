@@ -1,5 +1,6 @@
 package com.arctic.aurora;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -10,6 +11,9 @@ import android.widget.ImageView;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SettingActivity extends AppCompatActivity {
+
+    AlertDialog.Builder alertDialog;
+    AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +30,34 @@ public class SettingActivity extends AppCompatActivity {
     private final View.OnClickListener btn_logout = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            FirebaseAuth.getInstance().signOut();
+            alertDialog = new AlertDialog.Builder(SettingActivity.this);
+            View custom_alert = getLayoutInflater().inflate(R.layout.custom_alert_dialog, null);
+            alertDialog.setView(custom_alert);
+            dialog = alertDialog.create();
+            dialog.show();
+            Button btn_confirm = custom_alert.findViewById(R.id.btn_confirm_logout);
+            Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
+            btn_confirm.setOnClickListener(btn_confirm_logout);
+            btn_cancel.setOnClickListener(btn_cancel_logout);
         }
     };
     private final View.OnClickListener btn_return = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             finish();
+        }
+    };
+
+    private final View.OnClickListener btn_confirm_logout = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            FirebaseAuth.getInstance().signOut();
+        }
+    };
+    private final View.OnClickListener btn_cancel_logout = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            dialog.cancel();
         }
     };
 }

@@ -12,5 +12,7 @@
     <string name="btn_explore">Explore</string>
     <string name="title_setting">Setting</string>
     <string name="hint_search">Search</string>
-    <string name="btn_logout">logout</string>
+    <string name="btn_logout">Logout</string>
+    <string name="btn_reject">Cancel</string>
+    <string name="title_logout">Confirm logout?</string>
 </resources>
