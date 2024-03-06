@@ -59,34 +59,19 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_mart = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (!getLocalClassName().equals("MartActivity")) {
-                setBtnColor(mart, R.color.white);
-                setBtnColor(program, R.color.gray_light);
-                setBtnColor(explore, R.color.gray_light);
-                // startActivity(new Intent(getApplicationContext(), MartActivity.class));
-            }
+            groupSetBtnColor(mart, new Button[]{program, explore});
         }
     };
     public View.OnClickListener btn_program = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (!getLocalClassName().equals("HomePageActivity")) {
-                setBtnColor(program, R.color.white);
-                setBtnColor(mart, R.color.gray_light);
-                setBtnColor(explore, R.color.gray_light);
-                // startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
-            }
+            groupSetBtnColor(program, new Button[]{mart, explore});
         }
     };
     public View.OnClickListener btn_explore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (!getLocalClassName().equals("ExploreActivity")) {
-                setBtnColor(explore, R.color.white);
-                setBtnColor(mart, R.color.gray_light);
-                setBtnColor(program, R.color.gray_light);
-                // startActivity(new Intent(getApplicationContext(), ExploreActivity.class));
-            }
+            groupSetBtnColor(explore, new Button[]{mart, program});
         }
     };
     public View.OnClickListener btn_setting = new View.OnClickListener() {
@@ -95,6 +80,13 @@ public class HomePageActivity extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), SettingActivity.class));
         }
     };
+
+    public void groupSetBtnColor(Button white_btn, Button[] gray_btn) {
+        setBtnColor(white_btn, R.color.white);
+        for (Button btn : gray_btn) {
+            setBtnColor(btn, R.color.gray_light);
+        }
+    }
     public void setBtnColor(Button btn, int colorId) {
         btn.setTextColor(getColor(colorId));
         ((MaterialButton) btn).setIconTint(getColorStateList(colorId));
