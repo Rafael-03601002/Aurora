@@ -36,6 +36,7 @@ public class HomePageActivity extends AppCompatActivity {
     public Button friday;
     public Button saturday;
     public Button sunday;
+    private Button add_program;
 
 
     @Override
@@ -103,6 +104,7 @@ public class HomePageActivity extends AppCompatActivity {
         friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
         saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
         sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
+        add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
     }
 
     // base events
