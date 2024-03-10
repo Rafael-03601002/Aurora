@@ -1,8 +1,8 @@
 package com.arctic.aurora;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -16,12 +16,21 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class HomePageActivity extends AppCompatActivity {
-
+    // home page (base) objects
     public Button mart;
     public Button program;
     public Button explore;
     private ConstraintLayout base_view;
+
+    // custom_program objects
     private View layout_program;
+    public Button monday;
+    public Button tuesday;
+    public Button wednesday;
+    public Button thursday;
+    public Button friday;
+    public Button saturday;
+    public Button sunday;
 
 
     @Override
@@ -31,6 +40,7 @@ public class HomePageActivity extends AppCompatActivity {
         changeView(layout_program);
     }
 
+    @SuppressLint("InflateParams")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // System auto-generated
@@ -41,25 +51,28 @@ public class HomePageActivity extends AppCompatActivity {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
-        // Custom events
-        mart = findViewById(R.id.btn_mart);
-        mart.setOnClickListener(btn_mart);
-        program = findViewById(R.id.btn_program);
-        program.setOnClickListener(btn_program);
-        explore = findViewById(R.id.btn_explore);
-        explore.setOnClickListener(btn_explore);
-
-        base_view = findViewById(R.id.custom_ConstraintLayout);
-        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
-        ImageView setting = layout_program.findViewById(R.id.setting);
-        setting.setOnClickListener(btn_setting);
-
-
-
         if (currentUser == null) {
             startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
             finish();
         }
+
+        // home page elements (base)
+        base_view = findViewById(R.id.custom_ConstraintLayout);
+
+        mart = setBtnEvent(null, R.id.btn_mart, btn_mart);
+        program = setBtnEvent(null, R.id.btn_program, btn_program);
+        explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
+
+        // custom_program elements
+        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
+        ImageView setting = setImageViewEvent(layout_program, R.id.setting, btn_setting);
+        monday = setBtnEvent(layout_program, R.id.btn_monday, btn_monday);
+        tuesday = setBtnEvent(layout_program, R.id.btn_tuesday, btn_tuesday);
+        wednesday = setBtnEvent(layout_program, R.id.btn_wednesday, btn_wednesday);
+        thursday = setBtnEvent(layout_program, R.id.btn_thursday, btn_thursday);
+        friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
+        saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
+        sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
     }
 
     // base events
@@ -89,8 +102,74 @@ public class HomePageActivity extends AppCompatActivity {
             startActivity(new Intent(HomePageActivity.this, SettingActivity.class));
         }
     };
+    public View.OnClickListener btn_monday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(monday, new Button[]{tuesday, wednesday, thursday, friday, saturday, sunday});
+        }
+    };
+    public View.OnClickListener btn_tuesday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(tuesday, new Button[]{monday, wednesday, thursday, friday, saturday, sunday});
+        }
+    };
+    public View.OnClickListener btn_wednesday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(wednesday, new Button[]{monday, tuesday, thursday, friday, saturday, sunday});
+        }
+    };
+    public View.OnClickListener btn_thursday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(thursday, new Button[]{monday, tuesday, wednesday, friday, saturday, sunday});
+        }
+    };
+    public View.OnClickListener btn_friday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(friday, new Button[]{monday, tuesday, wednesday, thursday, saturday, sunday});
+        }
+    };
+    public View.OnClickListener btn_saturday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(saturday, new Button[]{monday, tuesday, wednesday, thursday, friday, sunday});
+        }
+    };
+    public View.OnClickListener btn_sunday = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
+        }
+    };
 
     // Common function
+    public Button setBtnEvent(View view , int id, View.OnClickListener event) {
+        Button btn;
+        if (view == null) {
+            btn = findViewById(id);
+            btn.setOnClickListener(event);
+        }
+        else {
+            btn = view.findViewById(id);
+            btn.setOnClickListener(event);
+        }
+        return btn;
+    }
+    public ImageView setImageViewEvent(View view, int id, View.OnClickListener event) {
+        ImageView imageView;
+        if (view == null) {
+            imageView = findViewById(id);
+            imageView.setOnClickListener(event);
+        }
+        else {
+            imageView = view.findViewById(id);
+            imageView.setOnClickListener(event);
+        }
+        return imageView;
+    }
     public void groupSetBtnColor(Button white_btn, Button[] gray_btn) {
         setBtnColor(white_btn, R.color.white);
         for (Button btn : gray_btn) {
