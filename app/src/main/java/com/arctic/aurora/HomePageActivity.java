@@ -15,6 +15,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimerTask;
+
 public class HomePageActivity extends AppCompatActivity {
     // home page (base) objects
     public Button mart;
@@ -38,6 +43,31 @@ public class HomePageActivity extends AppCompatActivity {
         super.onStart();
         groupSetBtnColor(program, new Button[]{mart, explore});
         changeView(layout_program);
+
+        int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+        switch (CurrentTime) {
+            case 1:
+                sunday.performClick();
+                break;
+            case 2:
+                monday.performClick();
+                break;
+            case 3:
+                tuesday.performClick();
+                break;
+            case 4:
+                wednesday.performClick();
+                break;
+            case 5:
+                thursday.performClick();
+                break;
+            case 6:
+                friday.performClick();
+                break;
+            case 7:
+                saturday.performClick();
+                break;
+        }
     }
 
     @SuppressLint("InflateParams")
@@ -142,6 +172,12 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
+        }
+    };
+    public View.OnClickListener btn_add_program = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // TODO: dynamic add program
         }
     };
 
