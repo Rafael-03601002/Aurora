@@ -15,4 +15,15 @@
     <string name="btn_logout">Logout</string>
     <string name="btn_reject">Cancel</string>
     <string name="title_logout">Confirm logout?</string>
+    <string name="monday">Mo</string>
+    <string name="tuesday">Tu</string>
+    <string name="wednesday">We</string>
+    <string name="thursday">Th</string>
+    <string name="friday">Fr</string>
+    <string name="saturday">Sa</string>
+    <string name="sunday">Su</string>
+    <string name="setting_intro">Setting details</string>
+    <string name="sports_name">Sports Name</string>
+    <string name="second">Time (s)</string>
+    <string name="btn_confirm">Confirm</string>
 </resources>
