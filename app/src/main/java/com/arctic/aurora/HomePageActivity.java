@@ -7,6 +7,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 public class HomePageActivity extends AppCompatActivity {
     // home page (base) objects
@@ -47,9 +49,6 @@ public class HomePageActivity extends AppCompatActivity {
     private TextInputEditText sports;
     private TextInputEditText time;
     private AlertDialog programDialog;
-
-    // program element
-    CountDownTimer countDownTimer;
 
     @Override
     public void onStart() {
@@ -220,32 +219,9 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             String sports_name = String.valueOf(sports.getText());
-            String timer = String.valueOf(time.getText());
+            int timer = Integer.parseInt(String.valueOf(time.getText()));
 
-            View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
-            TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
-            TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
-            ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
-            ImageView program_delete = layout_program_dtl.findViewById(R.id.btn_delete);
-
-            sport_name.setText(sports_name);
-            text_timer.setText(timer);
-            program_view.addView(layout_program_dtl);
-            programDialog.cancel();
-
-            // add onclick listener
-            program_playOrStop.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
-            program_delete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    program_view.removeView(layout_program_dtl);
-                }
-            });
+            addIntoProgram(sports_name, timer);
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
@@ -293,5 +269,105 @@ public class HomePageActivity extends AppCompatActivity {
     public void changeView(View view){
         base_view.removeAllViews();
         base_view.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+    public void addIntoProgram(String sports, int count_down_time) {
+        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
+        TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
+        TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
+        ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
+        ImageView program_delete = layout_program_dtl.findViewById(R.id.btn_delete);
+
+        // timer setting
+        long total_time = count_down_time * 1000L;
+        long hours = (total_time / 1000) / 3600;
+        long minutes = ((total_time / 1000) % 3600) / 60;
+        long seconds = (total_time / 1000) % 60;
+        String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+
+        sport_name.setText(sports);
+        text_timer.setText(formatted_time);
+        program_playOrStop.setTag("ready");
+        program_playOrStop.setImageResource(R.drawable.play);
+        program_view.addView(layout_program_dtl);
+        programDialog.cancel();
+
+        // add onclick listener
+        program_playOrStop.setOnClickListener(new View.OnClickListener() {
+
+            CountDownTimer timer;
+            long remaining_time;
+            @Override
+            public void onClick(View v) {
+                if (program_playOrStop.getTag() == "stop") {
+                    // set timer with remaining time and start
+                    timer = setTimer(layout_program_dtl, remaining_time + 999, 1000);
+                    timer.start();
+
+                    // change the image
+                    program_playOrStop.setTag("start");
+                    program_playOrStop.setImageResource(R.drawable.pause);
+                }
+                else if (program_playOrStop.getTag() == "start") {
+                    // cancel timer and record remaining time
+                    timer.cancel();
+                    TextView remaining_time_text = layout_program_dtl.findViewById(R.id.timer);
+                    remaining_time = formatTime(String.valueOf(remaining_time_text.getText()));
+
+                    // change the image
+                    program_playOrStop.setTag("stop");
+                    program_playOrStop.setImageResource(R.drawable.play);
+                }
+                else {
+                    // set timer and start
+                    timer = setTimer(layout_program_dtl, total_time + 999, 1000);
+                    timer.start();
+
+                    // change the image
+                    program_playOrStop.setTag("start");
+                    program_playOrStop.setImageResource(R.drawable.pause);
+                }
+            }
+        });
+        program_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                program_view.removeView(layout_program_dtl);
+            }
+        });
+    }
+    public CountDownTimer setTimer(View view, long time, long countDownInterval) {
+        return new CountDownTimer(time, countDownInterval) {
+            final TextView text_timer = view.findViewById(R.id.timer);
+            final ImageView program_playOrStop = view.findViewById(R.id.btn_timer_control);
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long hours = (millisUntilFinished / 1000) / 3600;
+                long minutes = ((millisUntilFinished / 1000) % 3600) / 60;
+                long seconds = (millisUntilFinished / 1000) % 60;
+                String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+                text_timer.setText(formatted_time);
+            }
+
+            @Override
+            public void onFinish() {
+                text_timer.setText(R.string.time_0);
+                program_playOrStop.setTag("ready");
+                program_playOrStop.setImageResource(R.drawable.play);
+                long hours = (time / 1000) / 3600;
+                long minutes = ((time / 1000) % 3600) / 60;
+                long seconds = (time / 1000) % 60;
+                String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+                text_timer.setText(formatted_time);
+            }
+        };
+    }
+    public long formatTime(String string_time) {
+        String[] seq = string_time.split(":");
+        int hours = Integer.parseInt(seq[0]);
+        int minutes = Integer.parseInt(seq[1]);
+        int seconds = Integer.parseInt(seq[2]);
+
+        return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
     }
 }
