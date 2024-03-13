@@ -21,33 +21,28 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
 import java.util.Locale;
 
 public class HomePageActivity extends AppCompatActivity {
+    // Common object
+    public FirebaseDatabase db;
+    public DatabaseReference refer;
+
     // home page (base) objects
-    public Button mart;
-    public Button program;
-    public Button explore;
+    public Button mart, program, explore;
     private ConstraintLayout base_view;
 
     // custom_program objects
-    private View layout_program;
-    private View layout_mart;
-    private View layout_explore;
+    private View layout_program, layout_mart, layout_explore;
     private LinearLayout program_view;
-    public Button monday;
-    public Button tuesday;
-    public Button wednesday;
-    public Button thursday;
-    public Button friday;
-    public Button saturday;
-    public Button sunday;
+    public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
     // confirm_program_dialog objects
-    private TextInputEditText sports;
-    private TextInputEditText time;
+    private TextInputEditText sports, time;
     private AlertDialog programDialog;
 
     @Override
@@ -159,43 +154,51 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_monday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            // loadProgramIfExist();
             groupSetBtnColor(monday, new Button[]{tuesday, wednesday, thursday, friday, saturday, sunday});
+            program_view.setTag("2");
         }
     };
     public View.OnClickListener btn_tuesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(tuesday, new Button[]{monday, wednesday, thursday, friday, saturday, sunday});
+            program_view.setTag("3");
         }
     };
     public View.OnClickListener btn_wednesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(wednesday, new Button[]{monday, tuesday, thursday, friday, saturday, sunday});
+            program_view.setTag("4");
         }
     };
     public View.OnClickListener btn_thursday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(thursday, new Button[]{monday, tuesday, wednesday, friday, saturday, sunday});
+            program_view.setTag("5");
         }
     };
     public View.OnClickListener btn_friday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(friday, new Button[]{monday, tuesday, wednesday, thursday, saturday, sunday});
+            program_view.setTag("6");
         }
     };
     public View.OnClickListener btn_saturday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(saturday, new Button[]{monday, tuesday, wednesday, thursday, friday, sunday});
+            program_view.setTag("7");
         }
     };
     public View.OnClickListener btn_sunday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
+            program_view.setTag("1");
         }
     };
     public View.OnClickListener btn_add_program = new View.OnClickListener() {
@@ -271,6 +274,10 @@ public class HomePageActivity extends AppCompatActivity {
         base_view.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
     }
     public void addIntoProgram(String sports, int count_down_time) {
+        // store into db
+        String tag = program_view.getTag().toString();
+
+        // objects
         @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
         TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
         TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
