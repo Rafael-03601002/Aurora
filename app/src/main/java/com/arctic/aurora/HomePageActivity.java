@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -17,20 +18,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Calendar;
 import java.util.Locale;
 
 public class HomePageActivity extends AppCompatActivity {
     // Common object
-    public FirebaseDatabase db;
-    public DatabaseReference refer;
+    public FirebaseAuth mAuth;
+    public FirebaseUser currentUser;
+    public FirebaseFirestore db;
 
     // home page (base) objects
     public Button mart, program, explore;
@@ -85,8 +88,8 @@ public class HomePageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home_page);
 
         // Firebase user authentication
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
         if (currentUser == null) {
             startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
@@ -156,49 +159,49 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             // loadProgramIfExist();
             groupSetBtnColor(monday, new Button[]{tuesday, wednesday, thursday, friday, saturday, sunday});
-            program_view.setTag("2");
+            program_view.setTag("Mon");
         }
     };
     public View.OnClickListener btn_tuesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(tuesday, new Button[]{monday, wednesday, thursday, friday, saturday, sunday});
-            program_view.setTag("3");
+            program_view.setTag("Tue");
         }
     };
     public View.OnClickListener btn_wednesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(wednesday, new Button[]{monday, tuesday, thursday, friday, saturday, sunday});
-            program_view.setTag("4");
+            program_view.setTag("Wed");
         }
     };
     public View.OnClickListener btn_thursday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(thursday, new Button[]{monday, tuesday, wednesday, friday, saturday, sunday});
-            program_view.setTag("5");
+            program_view.setTag("Thu");
         }
     };
     public View.OnClickListener btn_friday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(friday, new Button[]{monday, tuesday, wednesday, thursday, saturday, sunday});
-            program_view.setTag("6");
+            program_view.setTag("Fri");
         }
     };
     public View.OnClickListener btn_saturday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(saturday, new Button[]{monday, tuesday, wednesday, thursday, friday, sunday});
-            program_view.setTag("7");
+            program_view.setTag("Sat");
         }
     };
     public View.OnClickListener btn_sunday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
-            program_view.setTag("1");
+            program_view.setTag("Sun");
         }
     };
     public View.OnClickListener btn_add_program = new View.OnClickListener() {
@@ -275,7 +278,11 @@ public class HomePageActivity extends AppCompatActivity {
     }
     public void addIntoProgram(String sports, int count_down_time) {
         // store into db
-        String tag = program_view.getTag().toString();
+        String email = currentUser.getEmail();
+        String weekday = program_view.getTag().toString();
+        if (email != null) {
+            Program custom_program = new Program(weekday, sports, count_down_time);
+        }
 
         // objects
         @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
