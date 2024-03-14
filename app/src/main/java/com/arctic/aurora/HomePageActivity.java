@@ -17,8 +17,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -34,6 +36,7 @@ public class HomePageActivity extends AppCompatActivity {
     public FirebaseAuth mAuth;
     public FirebaseUser currentUser;
     public FirebaseFirestore db;
+    public int seq;
 
     // home page (base) objects
     public Button mart, program, explore;
@@ -78,6 +81,7 @@ public class HomePageActivity extends AppCompatActivity {
                 saturday.performClick();
                 break;
         }
+        // search_data();
     }
 
     @SuppressLint("InflateParams")
@@ -227,7 +231,7 @@ public class HomePageActivity extends AppCompatActivity {
             String sports_name = String.valueOf(sports.getText());
             int timer = Integer.parseInt(String.valueOf(time.getText()));
 
-            addIntoProgram(sports_name, timer);
+            addIntoProgram(false, sports_name, timer);
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
@@ -276,13 +280,17 @@ public class HomePageActivity extends AppCompatActivity {
         base_view.removeAllViews();
         base_view.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
     }
-    public void addIntoProgram(String sports, int count_down_time) {
+    public void addIntoProgram(Boolean load_from_db, String sports, int count_down_time) {
         // store into db
         String email = currentUser.getEmail();
         String weekday = program_view.getTag().toString();
-        if (email != null) {
-            Program custom_program = new Program(weekday, sports, count_down_time);
+        if (!load_from_db) {
+            if (email != null) {
+                Program custom_program = new Program(seq, sports, count_down_time);
+                create_data(email, weekday, custom_program);
+            }
         }
+
 
         // objects
         @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
@@ -383,5 +391,26 @@ public class HomePageActivity extends AppCompatActivity {
         int seconds = Integer.parseInt(seq[2]);
 
         return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
+    }
+
+    // db control
+    public void create_data(String email, String weekday, Program program) {
+        db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).add(program)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(HomePageActivity.this, "Failed to create into database", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    public void update_data(String email, String weekday, Program program) {
+
+    }
+    public void delete_data(String email, String weekday, Program program) {
+        db = FirebaseFirestore.getInstance();
+    }
+    public void search_data(String email, String weekday) {
+        db.collection("program").document(email).collection(weekday).get();
     }
 }

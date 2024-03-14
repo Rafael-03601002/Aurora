@@ -2,19 +2,19 @@ package com.arctic.aurora;
 
 public class Program {
 
-    private final String weekday;
+    private final int seq;
     private final String name;
     private final int time;
 
-    public Program(String weekday, String name, int time) {
-        this.weekday = weekday;
+    public Program(int seq, String name, int time) {
+        this.seq = seq;
         this.name = name;
         this.time = time;
     }
 
     // getter and setter
-    public String getWeekday() {
-        return weekday;
+    public int getSeq() {
+        return seq;
     }
 
     public String getName() {
