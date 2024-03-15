@@ -81,7 +81,7 @@ public class HomePageActivity extends AppCompatActivity {
                 saturday.performClick();
                 break;
         }
-        // search_data();
+         search_data(currentUser.getEmail(), program_view.getTag().toString());
     }
 
     @SuppressLint("InflateParams")
@@ -357,7 +357,7 @@ public class HomePageActivity extends AppCompatActivity {
             }
         });
     }
-    public CountDownTimer setTimer(View view, long time, long countDownInterval) {
+    public CountDownTimer setTimer(@NonNull View view, long time, long countDownInterval) {
         return new CountDownTimer(time, countDownInterval) {
             final TextView text_timer = view.findViewById(R.id.timer);
             final ImageView program_playOrStop = view.findViewById(R.id.btn_timer_control);
@@ -384,7 +384,7 @@ public class HomePageActivity extends AppCompatActivity {
             }
         };
     }
-    public long formatTime(String string_time) {
+    public long formatTime(@NonNull String string_time) {
         String[] seq = string_time.split(":");
         int hours = Integer.parseInt(seq[0]);
         int minutes = Integer.parseInt(seq[1]);
@@ -393,7 +393,13 @@ public class HomePageActivity extends AppCompatActivity {
         return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
     }
 
-    // db control
+    /**
+     * db control -- create, update, delete, search
+     *
+     * @param email FirebaseUser.getEmail()
+     * @param weekday program_view.getTag()
+     * @param program Program object
+     */
     public void create_data(String email, String weekday, Program program) {
         db = FirebaseFirestore.getInstance();
         db.collection("program").document(email).collection(weekday).add(program)
@@ -412,5 +418,8 @@ public class HomePageActivity extends AppCompatActivity {
     }
     public void search_data(String email, String weekday) {
         db.collection("program").document(email).collection(weekday).get();
+    }
+    public int updateSeq() {
+        return 0;
     }
 }
