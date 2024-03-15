@@ -7,10 +7,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -21,12 +19,16 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -35,7 +37,6 @@ public class HomePageActivity extends AppCompatActivity {
     // Common object
     public FirebaseAuth mAuth;
     public FirebaseUser currentUser;
-    public FirebaseFirestore db;
     public int seq;
 
     // home page (base) objects
@@ -81,7 +82,6 @@ public class HomePageActivity extends AppCompatActivity {
                 saturday.performClick();
                 break;
         }
-         search_data(currentUser.getEmail(), program_view.getTag().toString());
     }
 
     @SuppressLint("InflateParams")
@@ -164,6 +164,8 @@ public class HomePageActivity extends AppCompatActivity {
             // loadProgramIfExist();
             groupSetBtnColor(monday, new Button[]{tuesday, wednesday, thursday, friday, saturday, sunday});
             program_view.setTag("Mon");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_tuesday = new View.OnClickListener() {
@@ -171,6 +173,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(tuesday, new Button[]{monday, wednesday, thursday, friday, saturday, sunday});
             program_view.setTag("Tue");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_wednesday = new View.OnClickListener() {
@@ -178,6 +182,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(wednesday, new Button[]{monday, tuesday, thursday, friday, saturday, sunday});
             program_view.setTag("Wed");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_thursday = new View.OnClickListener() {
@@ -185,6 +191,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(thursday, new Button[]{monday, tuesday, wednesday, friday, saturday, sunday});
             program_view.setTag("Thu");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_friday = new View.OnClickListener() {
@@ -192,6 +200,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(friday, new Button[]{monday, tuesday, wednesday, thursday, saturday, sunday});
             program_view.setTag("Fri");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_saturday = new View.OnClickListener() {
@@ -199,6 +209,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(saturday, new Button[]{monday, tuesday, wednesday, thursday, friday, sunday});
             program_view.setTag("Sat");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_sunday = new View.OnClickListener() {
@@ -206,6 +218,8 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
             program_view.setTag("Sun");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_add_program = new View.OnClickListener() {
@@ -232,6 +246,7 @@ public class HomePageActivity extends AppCompatActivity {
             int timer = Integer.parseInt(String.valueOf(time.getText()));
 
             addIntoProgram(false, sports_name, timer);
+            programDialog.dismiss();    // same as dialog.cancel()
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
@@ -286,7 +301,7 @@ public class HomePageActivity extends AppCompatActivity {
         String weekday = program_view.getTag().toString();
         if (!load_from_db) {
             if (email != null) {
-                Program custom_program = new Program(seq, sports, count_down_time);
+                Program custom_program = new Program(sports, count_down_time);
                 create_data(email, weekday, custom_program);
             }
         }
@@ -311,7 +326,6 @@ public class HomePageActivity extends AppCompatActivity {
         program_playOrStop.setTag("ready");
         program_playOrStop.setImageResource(R.drawable.play);
         program_view.addView(layout_program_dtl);
-        programDialog.cancel();
 
         // add onclick listener
         program_playOrStop.setOnClickListener(new View.OnClickListener() {
@@ -351,8 +365,11 @@ public class HomePageActivity extends AppCompatActivity {
             }
         });
         program_delete.setOnClickListener(new View.OnClickListener() {
+
+            final String name = String.valueOf(sport_name.getText());
             @Override
             public void onClick(View v) {
+                delete_data(email, weekday, name);
                 program_view.removeView(layout_program_dtl);
             }
         });
@@ -401,7 +418,7 @@ public class HomePageActivity extends AppCompatActivity {
      * @param program Program object
      */
     public void create_data(String email, String weekday, Program program) {
-        db = FirebaseFirestore.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("program").document(email).collection(weekday).add(program)
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -411,15 +428,39 @@ public class HomePageActivity extends AppCompatActivity {
                 });
     }
     public void update_data(String email, String weekday, Program program) {
-
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
     }
-    public void delete_data(String email, String weekday, Program program) {
-        db = FirebaseFirestore.getInstance();
+    public void delete_data(String email, String weekday, String name) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).whereEqualTo("name", name)
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            String docID = result.getId();
+                            db.collection("program").
+                                    document(email).collection(weekday).document(docID).delete();
+                        }
+                    }
+                });
     }
     public void search_data(String email, String weekday) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("program").document(email).collection(weekday).get();
     }
-    public int updateSeq() {
-        return 0;
+    public void collect_currentDay_programData(String email, String weekday) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()){
+                            for (QueryDocumentSnapshot result : task.getResult()){
+                                addIntoProgram(true, String.valueOf(result.get("name")), Integer.parseInt(String.valueOf(result.get("time"))));
+                            }
+                        }
+                    }
+                });
     }
 }
