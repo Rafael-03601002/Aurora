@@ -15,41 +15,41 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 public class HomePageActivity extends AppCompatActivity {
+    // Common object
+    public FirebaseAuth mAuth;
+    public FirebaseUser currentUser;
+    public int seq;
+
     // home page (base) objects
-    public Button mart;
-    public Button program;
-    public Button explore;
+    public Button mart, program, explore;
     private ConstraintLayout base_view;
 
     // custom_program objects
-    private View layout_program;
-    private View layout_mart;
-    private View layout_explore;
+    private View layout_program, layout_mart, layout_explore;
     private LinearLayout program_view;
-    public Button monday;
-    public Button tuesday;
-    public Button wednesday;
-    public Button thursday;
-    public Button friday;
-    public Button saturday;
-    public Button sunday;
+    public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
     // confirm_program_dialog objects
-    private TextInputEditText sports;
-    private TextInputEditText time;
+    private TextInputEditText text_sports, text_time;
     private AlertDialog programDialog;
-
-    // program element
-    CountDownTimer countDownTimer;
 
     @Override
     public void onStart() {
@@ -91,8 +91,8 @@ public class HomePageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home_page);
 
         // Firebase user authentication
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
         if (currentUser == null) {
             startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
@@ -160,43 +160,65 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_monday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            // loadProgramIfExist();
             groupSetBtnColor(monday, new Button[]{tuesday, wednesday, thursday, friday, saturday, sunday});
+            program_view.setTag("Mon");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_tuesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(tuesday, new Button[]{monday, wednesday, thursday, friday, saturday, sunday});
+            program_view.setTag("Tue");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_wednesday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(wednesday, new Button[]{monday, tuesday, thursday, friday, saturday, sunday});
+            program_view.setTag("Wed");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_thursday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(thursday, new Button[]{monday, tuesday, wednesday, friday, saturday, sunday});
+            program_view.setTag("Thu");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_friday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(friday, new Button[]{monday, tuesday, wednesday, thursday, saturday, sunday});
+            program_view.setTag("Fri");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_saturday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(saturday, new Button[]{monday, tuesday, wednesday, thursday, friday, sunday});
+            program_view.setTag("Sat");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_sunday = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             groupSetBtnColor(sunday, new Button[]{monday, tuesday, wednesday, thursday, friday, saturday});
+            program_view.setTag("Sun");
+            program_view.removeAllViews();
+            collect_currentDay_programData(currentUser.getEmail(), program_view.getTag().toString());
         }
     };
     public View.OnClickListener btn_add_program = new View.OnClickListener() {
@@ -210,48 +232,41 @@ public class HomePageActivity extends AppCompatActivity {
             programDialog.show();
 
             // alert dialog elements and events
-            sports = custom_confirm_program.findViewById(R.id.sports);
-            time = custom_confirm_program.findViewById(R.id.text_timer);
-            Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm);
+            text_sports = custom_confirm_program.findViewById(R.id.sports);
+            text_time = custom_confirm_program.findViewById(R.id.text_timer);
+            Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_add);
             Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
         }
     };
-    public View.OnClickListener btn_dialog_confirm = new View.OnClickListener() {
+    public View.OnClickListener btn_dialog_confirm_add = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String sports_name = String.valueOf(sports.getText());
-            String timer = String.valueOf(time.getText());
+            String sports_name = String.valueOf(text_sports.getText());
+            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
 
-            View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
-            TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
-            TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
-            ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
-            ImageView program_delete = layout_program_dtl.findViewById(R.id.btn_delete);
-
-            sport_name.setText(sports_name);
-            text_timer.setText(timer);
-            program_view.addView(layout_program_dtl);
-            programDialog.cancel();
-
-            // add onclick listener
-            program_playOrStop.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
-            program_delete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    program_view.removeView(layout_program_dtl);
-                }
-            });
+            addIntoProgram(false, sports_name, timer);
+            programDialog.dismiss();    // same as dialog.cancel()
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             programDialog.cancel();
+        }
+    };
+    public View.OnClickListener btn_dialog_confirm_update = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            String email = currentUser.getEmail();
+            String weekday = String.valueOf(program_view.getTag());
+            String sports_name = String.valueOf(text_sports.getText());
+            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+            String docID = String.valueOf(v.getTag());
+
+            update_programData(email, weekday, docID, sports_name, timer);
+            program_view.removeAllViews();
+            collect_currentDay_programData(email, weekday);
+            programDialog.dismiss();
         }
     };
 
@@ -293,5 +308,232 @@ public class HomePageActivity extends AppCompatActivity {
     public void changeView(View view){
         base_view.removeAllViews();
         base_view.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+    public void addIntoProgram(Boolean load_from_db, String sports, int count_down_time) {
+        // store into db
+        String email = currentUser.getEmail();
+        String weekday = program_view.getTag().toString();
+        if (!load_from_db) {
+            if (email != null) {
+                Program custom_program = new Program(sports, count_down_time);
+                create_programData(email, weekday, custom_program);
+            }
+        }
+
+
+        // objects
+        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
+        TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
+        TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
+        ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
+        ImageView program_delete = layout_program_dtl.findViewById(R.id.btn_delete);
+
+        // timer setting
+        long total_time = count_down_time * 1000L;
+        long hours = (total_time / 1000) / 3600;
+        long minutes = ((total_time / 1000) % 3600) / 60;
+        long seconds = (total_time / 1000) % 60;
+        String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+
+        sport_name.setText(sports);
+        text_timer.setText(formatted_time);
+        program_playOrStop.setTag("ready");
+        program_playOrStop.setImageResource(R.drawable.play);
+        program_view.addView(layout_program_dtl);
+
+        // add onclick listener
+        program_playOrStop.setOnClickListener(new View.OnClickListener() {
+
+            CountDownTimer timer;
+            long remaining_time;
+            @Override
+            public void onClick(View v) {
+                if (program_playOrStop.getTag() == "stop") {
+                    // set timer with remaining time and start
+                    timer = setTimer(layout_program_dtl, remaining_time + 999, 1000);
+                    timer.start();
+
+                    // change the image
+                    program_playOrStop.setTag("start");
+                    program_playOrStop.setImageResource(R.drawable.pause);
+                }
+                else if (program_playOrStop.getTag() == "start") {
+                    // cancel timer and record remaining time
+                    timer.cancel();
+                    TextView remaining_time_text = layout_program_dtl.findViewById(R.id.timer);
+                    remaining_time = formatTime(String.valueOf(remaining_time_text.getText()));
+
+                    // change the image
+                    program_playOrStop.setTag("stop");
+                    program_playOrStop.setImageResource(R.drawable.play);
+                }
+                else {
+                    // set timer and start
+                    timer = setTimer(layout_program_dtl, total_time + 999, 1000);
+                    timer.start();
+
+                    // change the image
+                    program_playOrStop.setTag("start");
+                    program_playOrStop.setImageResource(R.drawable.pause);
+                }
+            }
+        });
+        program_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                delete_programData(email, weekday, sports, count_down_time);
+                program_view.removeView(layout_program_dtl);
+            }
+        });
+        layout_program_dtl.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // custom alert dialog
+                AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
+                programDialogBuilder.setView(custom_confirm_program);
+                programDialog = programDialogBuilder.create();
+                programDialog.show();
+
+
+                // alert dialog elements and events
+                text_sports = custom_confirm_program.findViewById(R.id.sports);
+                text_time = custom_confirm_program.findViewById(R.id.text_timer);
+                text_sports.setText(sports);
+                text_time.setText(String.valueOf(count_down_time));
+                Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_update);
+                Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
+
+                // find unique ID in db
+                Task<QuerySnapshot> result = search_programData(email, weekday, sports, count_down_time);
+                result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            confirm.setTag(result.getId());
+                        }
+                    }
+                });
+                return true;
+            }
+        });
+    }
+    public CountDownTimer setTimer(@NonNull View view, long time, long countDownInterval) {
+        return new CountDownTimer(time, countDownInterval) {
+            final TextView text_timer = view.findViewById(R.id.timer);
+            final ImageView program_playOrStop = view.findViewById(R.id.btn_timer_control);
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long hours = (millisUntilFinished / 1000) / 3600;
+                long minutes = ((millisUntilFinished / 1000) % 3600) / 60;
+                long seconds = (millisUntilFinished / 1000) % 60;
+                String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+                text_timer.setText(formatted_time);
+            }
+
+            @Override
+            public void onFinish() {
+                text_timer.setText(R.string.time_0);
+                program_playOrStop.setTag("ready");
+                program_playOrStop.setImageResource(R.drawable.play);
+                long hours = (time / 1000) / 3600;
+                long minutes = ((time / 1000) % 3600) / 60;
+                long seconds = (time / 1000) % 60;
+                String formatted_time = String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+                text_timer.setText(formatted_time);
+            }
+        };
+    }
+
+    /**
+     *
+     * @param string_time Unformatted time. ex. 00:00:00
+     * @return formatted time(s)
+     */
+    public long formatTime(@NonNull String string_time) {
+        String[] seq = string_time.split(":");
+        int hours = Integer.parseInt(seq[0]);
+        int minutes = Integer.parseInt(seq[1]);
+        int seconds = Integer.parseInt(seq[2]);
+
+        return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
+    }
+
+    /**
+     *
+     * @param email FirebaseUser.getEmail()
+     * @param weekday program_view.getTag()
+     * @param program Program object
+     */
+    public void create_programData(String email, String weekday, Program program) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).add(program)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(HomePageActivity.this, "Failed to create into database", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    /**
+     * Before using update_programData function, using search_programData function and add OnCompleteListener
+     * to get the unique document ID
+     *
+     * @param email currentUser,getEmail()
+     * @param weekday String.valueOf(program_view.getTag())
+     * @param docID unique document ID
+     * @param new_name String.valueOf(text_sports.getText())
+     * @param new_time Integer.parseInt(String.valueOf(text_time.getText()))
+     */
+    public void update_programData(String email, String weekday, String docID, String new_name, int new_time) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).document(docID)
+                .update("name", new_name, "time", new_time);
+    }
+
+    /**
+     * delete program data from db by giving current object
+     *
+     * @param email currentUser,getEmail()
+     * @param weekday String.valueOf(program_view.getTag())
+     * @param name sports
+     * @param time count_down_time
+     */
+    public void delete_programData(String email, String weekday, String name, int time) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Task<QuerySnapshot> result = search_programData(email, weekday, name, time);
+        result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                    DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                    String docID = result.getId();
+                    db.collection("program").
+                            document(email).collection(weekday).document(docID).delete();
+                }
+            }
+        });
+    }
+    public Task<QuerySnapshot> search_programData(String email, String weekday, String name, int time) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        return db.collection("program").document(email).collection(weekday).
+                whereEqualTo("name", name).whereEqualTo("time", time).get();
+    }
+    public void collect_currentDay_programData(String email, String weekday) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()){
+                            for (QueryDocumentSnapshot result : task.getResult()){
+                                addIntoProgram(true, String.valueOf(result.get("name")), Integer.parseInt(String.valueOf(result.get("time"))));
+                            }
+                        }
+                    }
+                });
     }
 }
