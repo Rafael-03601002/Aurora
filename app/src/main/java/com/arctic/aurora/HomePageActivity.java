@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -49,7 +48,7 @@ public class HomePageActivity extends AppCompatActivity {
     public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
     // confirm_program_dialog objects
-    private TextInputEditText sports, time;
+    private TextInputEditText text_sports, text_time;
     private AlertDialog programDialog;
 
     @Override
@@ -233,17 +232,17 @@ public class HomePageActivity extends AppCompatActivity {
             programDialog.show();
 
             // alert dialog elements and events
-            sports = custom_confirm_program.findViewById(R.id.sports);
-            time = custom_confirm_program.findViewById(R.id.text_timer);
-            Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm);
+            text_sports = custom_confirm_program.findViewById(R.id.sports);
+            text_time = custom_confirm_program.findViewById(R.id.text_timer);
+            Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_add);
             Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
         }
     };
-    public View.OnClickListener btn_dialog_confirm = new View.OnClickListener() {
+    public View.OnClickListener btn_dialog_confirm_add = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String sports_name = String.valueOf(sports.getText());
-            int timer = Integer.parseInt(String.valueOf(time.getText()));
+            String sports_name = String.valueOf(text_sports.getText());
+            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
 
             addIntoProgram(false, sports_name, timer);
             programDialog.dismiss();    // same as dialog.cancel()
@@ -253,6 +252,21 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             programDialog.cancel();
+        }
+    };
+    public View.OnClickListener btn_dialog_confirm_update = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            String email = currentUser.getEmail();
+            String weekday = String.valueOf(program_view.getTag());
+            String sports_name = String.valueOf(text_sports.getText());
+            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+            String docID = String.valueOf(v.getTag());
+
+            update_programData(email, weekday, docID, sports_name, timer);
+            program_view.removeAllViews();
+            collect_currentDay_programData(email, weekday);
+            programDialog.dismiss();
         }
     };
 
@@ -302,7 +316,7 @@ public class HomePageActivity extends AppCompatActivity {
         if (!load_from_db) {
             if (email != null) {
                 Program custom_program = new Program(sports, count_down_time);
-                create_data(email, weekday, custom_program);
+                create_programData(email, weekday, custom_program);
             }
         }
 
@@ -365,12 +379,43 @@ public class HomePageActivity extends AppCompatActivity {
             }
         });
         program_delete.setOnClickListener(new View.OnClickListener() {
-
-            final String name = String.valueOf(sport_name.getText());
             @Override
             public void onClick(View v) {
-                delete_data(email, weekday, name);
+                delete_programData(email, weekday, sports, count_down_time);
                 program_view.removeView(layout_program_dtl);
+            }
+        });
+        layout_program_dtl.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // custom alert dialog
+                AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
+                programDialogBuilder.setView(custom_confirm_program);
+                programDialog = programDialogBuilder.create();
+                programDialog.show();
+
+
+                // alert dialog elements and events
+                text_sports = custom_confirm_program.findViewById(R.id.sports);
+                text_time = custom_confirm_program.findViewById(R.id.text_timer);
+                text_sports.setText(sports);
+                text_time.setText(String.valueOf(count_down_time));
+                Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_update);
+                Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
+
+                // find unique ID in db
+                Task<QuerySnapshot> result = search_programData(email, weekday, sports, count_down_time);
+                result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            confirm.setTag(result.getId());
+                        }
+                    }
+                });
+                return true;
             }
         });
     }
@@ -401,6 +446,12 @@ public class HomePageActivity extends AppCompatActivity {
             }
         };
     }
+
+    /**
+     *
+     * @param string_time Unformatted time. ex. 00:00:00
+     * @return formatted time(s)
+     */
     public long formatTime(@NonNull String string_time) {
         String[] seq = string_time.split(":");
         int hours = Integer.parseInt(seq[0]);
@@ -411,13 +462,12 @@ public class HomePageActivity extends AppCompatActivity {
     }
 
     /**
-     * db control -- create, update, delete, search
      *
      * @param email FirebaseUser.getEmail()
      * @param weekday program_view.getTag()
      * @param program Program object
      */
-    public void create_data(String email, String weekday, Program program) {
+    public void create_programData(String email, String weekday, Program program) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("program").document(email).collection(weekday).add(program)
                 .addOnFailureListener(new OnFailureListener() {
@@ -427,27 +477,50 @@ public class HomePageActivity extends AppCompatActivity {
                     }
                 });
     }
-    public void update_data(String email, String weekday, Program program) {
+
+    /**
+     * Before using update_programData function, using search_programData function and add OnCompleteListener
+     * to get the unique document ID
+     *
+     * @param email currentUser,getEmail()
+     * @param weekday String.valueOf(program_view.getTag())
+     * @param docID unique document ID
+     * @param new_name String.valueOf(text_sports.getText())
+     * @param new_time Integer.parseInt(String.valueOf(text_time.getText()))
+     */
+    public void update_programData(String email, String weekday, String docID, String new_name, int new_time) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("program").document(email).collection(weekday).document(docID)
+                .update("name", new_name, "time", new_time);
     }
-    public void delete_data(String email, String weekday, String name) {
+
+    /**
+     * delete program data from db by giving current object
+     *
+     * @param email currentUser,getEmail()
+     * @param weekday String.valueOf(program_view.getTag())
+     * @param name sports
+     * @param time count_down_time
+     */
+    public void delete_programData(String email, String weekday, String name, int time) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("program").document(email).collection(weekday).whereEqualTo("name", name)
-                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
-                            String docID = result.getId();
-                            db.collection("program").
-                                    document(email).collection(weekday).document(docID).delete();
-                        }
-                    }
-                });
+        Task<QuerySnapshot> result = search_programData(email, weekday, name, time);
+        result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                    DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                    String docID = result.getId();
+                    db.collection("program").
+                            document(email).collection(weekday).document(docID).delete();
+                }
+            }
+        });
     }
-    public void search_data(String email, String weekday) {
+    public Task<QuerySnapshot> search_programData(String email, String weekday, String name, int time) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("program").document(email).collection(weekday).get();
+        return db.collection("program").document(email).collection(weekday).
+                whereEqualTo("name", name).whereEqualTo("time", time).get();
     }
     public void collect_currentDay_programData(String email, String weekday) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
