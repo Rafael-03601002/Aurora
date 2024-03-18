@@ -51,82 +51,6 @@ public class HomePageActivity extends AppCompatActivity {
     private TextInputEditText text_sports, text_time;
     private AlertDialog programDialog;
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        groupSetBtnColor(program, new Button[]{mart, explore});
-        changeView(layout_program);
-
-        int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-        switch (CurrentTime) {
-            case 1:
-                sunday.performClick();
-                break;
-            case 2:
-                monday.performClick();
-                break;
-            case 3:
-                tuesday.performClick();
-                break;
-            case 4:
-                wednesday.performClick();
-                break;
-            case 5:
-                thursday.performClick();
-                break;
-            case 6:
-                friday.performClick();
-                break;
-            case 7:
-                saturday.performClick();
-                break;
-        }
-    }
-
-    @SuppressLint("InflateParams")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // System auto-generated
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home_page);
-
-        // Firebase user authentication
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-
-        if (currentUser == null) {
-            startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
-            finish();
-        }
-
-        // home page elements (base)
-        base_view = findViewById(R.id.custom_ConstraintLayout);
-
-        mart = setBtnEvent(null, R.id.btn_mart, btn_mart);
-        program = setBtnEvent(null, R.id.btn_program, btn_program);
-        explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
-
-        // custom_program elements
-        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
-        program_view = layout_program.findViewById(R.id.program_list);
-
-        ImageView setting = setImageViewEvent(layout_program, R.id.setting, btn_setting);
-        monday = setBtnEvent(layout_program, R.id.btn_monday, btn_monday);
-        tuesday = setBtnEvent(layout_program, R.id.btn_tuesday, btn_tuesday);
-        wednesday = setBtnEvent(layout_program, R.id.btn_wednesday, btn_wednesday);
-        thursday = setBtnEvent(layout_program, R.id.btn_thursday, btn_thursday);
-        friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
-        saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
-        sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
-        Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
-
-        // custom_mart elements
-        layout_mart = getLayoutInflater().inflate(R.layout.custom_mart, null);
-
-        // custom_explore elements
-        layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
-    }
-
     // base events
     public View.OnClickListener btn_mart = new View.OnClickListener() {
         @Override
@@ -270,6 +194,83 @@ public class HomePageActivity extends AppCompatActivity {
         }
     };
 
+    // System Initialize
+    @Override
+    public void onStart() {
+        super.onStart();
+        groupSetBtnColor(program, new Button[]{mart, explore});
+        changeView(layout_program);
+
+        int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+        switch (CurrentTime) {
+            case 1:
+                sunday.performClick();
+                break;
+            case 2:
+                monday.performClick();
+                break;
+            case 3:
+                tuesday.performClick();
+                break;
+            case 4:
+                wednesday.performClick();
+                break;
+            case 5:
+                thursday.performClick();
+                break;
+            case 6:
+                friday.performClick();
+                break;
+            case 7:
+                saturday.performClick();
+                break;
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // System auto-generated
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home_page);
+
+        // Firebase user authentication
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
+            finish();
+        }
+
+        // home page elements (base)
+        base_view = findViewById(R.id.custom_ConstraintLayout);
+
+        mart = setBtnEvent(null, R.id.btn_mart, btn_mart);
+        program = setBtnEvent(null, R.id.btn_program, btn_program);
+        explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
+
+        // custom_program elements
+        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
+        program_view = layout_program.findViewById(R.id.program_list);
+
+        ImageView setting = setImageViewEvent(layout_program, R.id.setting, btn_setting);
+        monday = setBtnEvent(layout_program, R.id.btn_monday, btn_monday);
+        tuesday = setBtnEvent(layout_program, R.id.btn_tuesday, btn_tuesday);
+        wednesday = setBtnEvent(layout_program, R.id.btn_wednesday, btn_wednesday);
+        thursday = setBtnEvent(layout_program, R.id.btn_thursday, btn_thursday);
+        friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
+        saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
+        sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
+        Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
+
+        // custom_mart elements
+        layout_mart = getLayoutInflater().inflate(R.layout.custom_mart, null);
+
+        // custom_explore elements
+        layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
+    }
+
     // Common function
     public Button setBtnEvent(View view , int id, View.OnClickListener event) {
         Button btn;
@@ -322,7 +323,7 @@ public class HomePageActivity extends AppCompatActivity {
 
 
         // objects
-        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
+        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.custom_program_dtl, null);
         TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
         TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
         ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
