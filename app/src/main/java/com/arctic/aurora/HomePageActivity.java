@@ -38,12 +38,14 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StreamDownloadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class HomePageActivity extends AppCompatActivity {
     // Common object
@@ -601,25 +603,21 @@ public class HomePageActivity extends AppCompatActivity {
             TextView text_username = explore_dtl.findViewById(R.id.explore_username);
             TextView text_desc = explore_dtl.findViewById(R.id.explore_description);
             TextView text_date = explore_dtl.findViewById(R.id.explore_date);
-            ImageView image = explore_dtl.findViewById(R.id.explore_image);
             ImageView image_heart = explore_dtl.findViewById(R.id.explore_heart);
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference refer = storage.getReference().child(imageUri);
-            try {
-                File localFile = File.createTempFile("images", "jpg");
-                refer.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                        Bitmap bitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
-                        image.setImageBitmap(bitmap);
-                    }
-                });
-            }
-            catch (Exception e) {
-                Toast.makeText(HomePageActivity.this, "Loading failure", Toast.LENGTH_SHORT).show();
-            }
+            refer.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        Uri uri = task.getResult();
 
+                        ImageView image = explore_dtl.findViewById(R.id.explore_image);
+                        Picasso.get().load(uri).fit().into(image);
+                    }
+                }
+            });
 
             // set into textview
             text_username.setText(userName);
@@ -627,6 +625,20 @@ public class HomePageActivity extends AppCompatActivity {
             text_date.setText(date);
             explore_view.addView(explore_dtl);
 
+            // heart onclick
+            image_heart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (String.valueOf(image_heart.getTag()).equals("null") || TextUtils.isEmpty(String.valueOf(image_heart.getTag())) || String.valueOf(image_heart.getTag()).equals("empty")) {
+                        image_heart.setImageResource(R.drawable.heart_full);
+                        image_heart.setTag("full");
+                    }
+                    else {
+                        image_heart.setImageResource(R.drawable.heart_empty);
+                        image_heart.setTag("empty");
+                    }
+                }
+            });
         }
     }
 }

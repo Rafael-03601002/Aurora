@@ -34,7 +34,6 @@
         android:layout_height="350dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:scaleType="centerCrop"
         android:src="@drawable/image_120"
         app:layout_constraintBottom_toTopOf="@+id/explore_heart"
         app:layout_constraintEnd_toEndOf="parent"
