@@ -1,5 +1,6 @@
 package com.arctic.aurora;
 
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,8 +8,12 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,6 +24,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -28,7 +34,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StreamDownloadTask;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -57,6 +70,7 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(mart, new Button[]{program, explore});
             changeView(layout_mart);
+            base_view.setTag("mart");
         }
     };
     public View.OnClickListener btn_program = new View.OnClickListener() {
@@ -64,6 +78,7 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(program, new Button[]{mart, explore});
             changeView(layout_program);
+            base_view.setTag("program");
         }
     };
     public View.OnClickListener btn_explore = new View.OnClickListener() {
@@ -71,6 +86,9 @@ public class HomePageActivity extends AppCompatActivity {
         public void onClick(View v) {
             groupSetBtnColor(explore, new Button[]{mart, program});
             changeView(layout_explore);
+            base_view.setTag("explore");
+            explore_view.removeAllViews();
+            collect_exploreData();
         }
     };
 
@@ -194,36 +212,53 @@ public class HomePageActivity extends AppCompatActivity {
         }
     };
 
+    // custom explore events
+    private LinearLayout explore_view;
+    public View.OnClickListener btn_add_explore = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(HomePageActivity.this, PostActivity.class));
+        }
+    };
+
     // System Initialize
     @Override
     public void onStart() {
         super.onStart();
-        groupSetBtnColor(program, new Button[]{mart, explore});
-        changeView(layout_program);
+        String tag = String.valueOf(base_view.getTag());
+        if (TextUtils.isEmpty(tag) || tag.equals("program") || tag.equals("null")) {
+            program.performClick();
 
-        int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-        switch (CurrentTime) {
-            case 1:
-                sunday.performClick();
-                break;
-            case 2:
-                monday.performClick();
-                break;
-            case 3:
-                tuesday.performClick();
-                break;
-            case 4:
-                wednesday.performClick();
-                break;
-            case 5:
-                thursday.performClick();
-                break;
-            case 6:
-                friday.performClick();
-                break;
-            case 7:
-                saturday.performClick();
-                break;
+            int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+            switch (CurrentTime) {
+                case 1:
+                    sunday.performClick();
+                    break;
+                case 2:
+                    monday.performClick();
+                    break;
+                case 3:
+                    tuesday.performClick();
+                    break;
+                case 4:
+                    wednesday.performClick();
+                    break;
+                case 5:
+                    thursday.performClick();
+                    break;
+                case 6:
+                    friday.performClick();
+                    break;
+                case 7:
+                    saturday.performClick();
+                    break;
+            }
+        }
+        else if (!TextUtils.isEmpty(tag) && tag.equals("explore")) {
+            explore.performClick();
+        }
+        else {
+            mart.performClick();
         }
     }
 
@@ -269,6 +304,8 @@ public class HomePageActivity extends AppCompatActivity {
 
         // custom_explore elements
         layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
+        explore_view = layout_explore.findViewById(R.id.explore_view);
+        Button add_explore = setBtnEvent(layout_explore, R.id.add_explore, btn_add_explore);
     }
 
     // Common function
@@ -462,8 +499,9 @@ public class HomePageActivity extends AppCompatActivity {
         return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
     }
 
+    // Program common function
     /**
-     *
+     * create program data into database
      * @param email FirebaseUser.getEmail()
      * @param weekday program_view.getTag()
      * @param program Program object
@@ -536,5 +574,59 @@ public class HomePageActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    // Explore common function
+    public void collect_exploreData() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("explore").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot result: task.getResult()) {
+                        addIntoExplore(true,
+                                String.valueOf(result.get("userName")),
+                                String.valueOf(result.get("uri")),
+                                String.valueOf(result.get("description")),
+                                String.valueOf(result.get("date")));
+                    }
+                }
+            }
+        });
+    }
+    public void addIntoExplore(Boolean load_from_db, String userName, String imageUri, String description, String date) {
+        if (load_from_db) {
+            // objects
+            @SuppressLint("InflateParams") View explore_dtl = getLayoutInflater().inflate(R.layout.custom_explore_dtl, null);
+            TextView text_username = explore_dtl.findViewById(R.id.explore_username);
+            TextView text_desc = explore_dtl.findViewById(R.id.explore_description);
+            TextView text_date = explore_dtl.findViewById(R.id.explore_date);
+            ImageView image = explore_dtl.findViewById(R.id.explore_image);
+            ImageView image_heart = explore_dtl.findViewById(R.id.explore_heart);
+
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            StorageReference refer = storage.getReference().child(imageUri);
+            try {
+                File localFile = File.createTempFile("images", "jpg");
+                refer.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                        image.setImageBitmap(bitmap);
+                    }
+                });
+            }
+            catch (Exception e) {
+                Toast.makeText(HomePageActivity.this, "Loading failure", Toast.LENGTH_SHORT).show();
+            }
+
+
+            // set into textview
+            text_username.setText(userName);
+            text_desc.setText(description);
+            text_date.setText(date);
+            explore_view.addView(explore_dtl);
+
+        }
     }
 }

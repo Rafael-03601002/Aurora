@@ -31,10 +31,10 @@
     <ImageView
         android:id="@+id/explore_image"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="350dp"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:scaleType="center"
+        android:layout_marginBottom="16dp"
+        android:scaleType="centerCrop"
         android:src="@drawable/image_120"
         app:layout_constraintBottom_toTopOf="@+id/explore_heart"
         app:layout_constraintEnd_toEndOf="parent"
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="24dp"
         android:text="TextView"
         android:textColor="@color/white"
         android:textSize="16sp"
@@ -64,4 +64,15 @@
         android:src="@drawable/heart_empty"
         app:layout_constraintBottom_toTopOf="@+id/explore_description"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/explore_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="TextView"
+        android:textColor="@color/gray"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/explore_description" />
 </androidx.constraintlayout.widget.ConstraintLayout>
