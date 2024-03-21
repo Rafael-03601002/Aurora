@@ -607,6 +607,8 @@ public class HomePageActivity extends AppCompatActivity {
 
             FirebaseStorage storage = FirebaseStorage.getInstance();
             StorageReference refer = storage.getReference().child(imageUri);
+
+            // load image from web storage
             refer.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
                 @Override
                 public void onComplete(@NonNull Task<Uri> task) {
