@@ -31,4 +31,7 @@
     <string name="description">description</string>
     <string name="title_delete">Confirm delete?</string>
     <string name="btn_delete">Delete</string>
+    <string name="diet_setting_intro">Setting diet details</string>
+    <string name="food_name">Food</string>
+    <string name="calories">calories</string>
 </resources>

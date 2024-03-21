@@ -16,12 +16,12 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/dialog_intro"
+                android:id="@+id/diet_dialog_intro"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="32dp"
-                android:text="@string/setting_intro"
+                android:text="@string/diet_setting_intro"
                 android:textColor="@color/white"
                 android:textSize="22sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -38,14 +38,14 @@
                 android:textColorHint="@color/gray"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/dialog_intro">
+                app:layout_constraintTop_toBottomOf="@id/diet_dialog_intro">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/sports"
+                    android:id="@+id/diet_first_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@android:color/transparent"
-                    android:hint="@string/sports_name" />
+                    android:hint="@string/food_name" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -61,16 +61,16 @@
                 app:layout_constraintTop_toBottomOf="@+id/textInputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/text_timer"
+                    android:id="@+id/diet_second_row"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@android:color/transparent"
-                    android:hint="@string/second"
+                    android:hint="@string/calories"
                     android:inputType="number|numberDecimal|numberSigned" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button
-                android:id="@+id/btn_dialog_confirm"
+                android:id="@+id/btn_diet_dialog_confirm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -85,7 +85,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" />
 
             <Button
-                android:id="@+id/btn_dialog_cancel"
+                android:id="@+id/btn_diet_dialog_cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
@@ -96,7 +96,7 @@
                 android:textColor="@color/white"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btn_dialog_confirm"
+                app:layout_constraintEnd_toStartOf="@+id/btn_diet_dialog_confirm"
                 app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>

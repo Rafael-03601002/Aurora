@@ -42,20 +42,21 @@ public class HomePageActivity extends AppCompatActivity {
     // Common object
     public FirebaseAuth mAuth;
     public FirebaseUser currentUser;
-    public int seq;
 
-    // home page (base) objects
+    // base objects
     public Button diet, program, explore;
     private ConstraintLayout base_view;
+    private View layout_program, layout_diet, layout_explore;
+    private AlertDialog confirmDialog;
+    private LinearLayout program_view;
+    private LinearLayout explore_view;
+    private LinearLayout diet_view;
 
     // custom_program objects
-    private View layout_program, layout_diet, layout_explore;
-    private LinearLayout program_view;
     public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
     // confirm_program_dialog objects
     private TextInputEditText text_sports, text_time;
-    private AlertDialog programDialog;
 
     // base events
     public View.OnClickListener btn_diet = new View.OnClickListener() {
@@ -160,15 +161,15 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             // custom alert dialog
-            AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
-            View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
-            programDialogBuilder.setView(custom_confirm_program);
-            programDialog = programDialogBuilder.create();
-            programDialog.show();
+            AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+            View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_dialog, null);
+            confirmDialogBuilder.setView(custom_confirm_program);
+            confirmDialog = confirmDialogBuilder.create();
+            confirmDialog.show();
 
             // alert dialog elements and events
-            text_sports = custom_confirm_program.findViewById(R.id.sports);
-            text_time = custom_confirm_program.findViewById(R.id.text_timer);
+            text_sports = custom_confirm_program.findViewById(R.id.first_row);
+            text_time = custom_confirm_program.findViewById(R.id.second_row);
             Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_add);
             Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
         }
@@ -176,43 +177,58 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_dialog_confirm_add = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String sports_name = String.valueOf(text_sports.getText());
-            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+            if (!TextUtils.isEmpty(text_sports.getText()) && !TextUtils.isEmpty(text_time.getText())) {
+                String sports_name = String.valueOf(text_sports.getText());
+                int timer = Integer.parseInt(String.valueOf(text_time.getText()));
 
-            addIntoProgram(false, sports_name, timer);
-            programDialog.dismiss();    // same as dialog.cancel()
+                addIntoProgram(false, sports_name, timer);
+                confirmDialog.dismiss();    // same as dialog.cancel()
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            programDialog.cancel();
+            confirmDialog.cancel();
         }
     };
     public View.OnClickListener btn_dialog_confirm_update = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String email = currentUser.getEmail();
-            String weekday = String.valueOf(program_view.getTag());
-            String sports_name = String.valueOf(text_sports.getText());
-            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
-            String docID = String.valueOf(v.getTag());
+            if (!TextUtils.isEmpty(text_sports.getText()) && !TextUtils.isEmpty(text_time.getText())) {
+                String email = currentUser.getEmail();
+                String weekday = String.valueOf(program_view.getTag());
+                String sports_name = String.valueOf(text_sports.getText());
+                int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+                String docID = String.valueOf(v.getTag());
 
-            update_programData(email, weekday, docID, sports_name, timer);
-            program_view.removeAllViews();
-            collect_currentDay_programData(email, weekday);
-            programDialog.dismiss();
+                update_programData(email, weekday, docID, sports_name, timer);
+                program_view.removeAllViews();
+                collect_currentDay_programData(email, weekday);
+                confirmDialog.dismiss();
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
         }
     };
 
     // custom explore events
-    private LinearLayout explore_view;
     public View.OnClickListener btn_add_explore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             startActivity(new Intent(HomePageActivity.this, PostActivity.class));
         }
     };
+
+    // custom diet events
+    public Button diet_monday, diet_tuesday, diet_wednesday, diet_thursday, diet_friday, diet_saturday, diet_sunday;
+    public Button add_diet, diet_confirm, diet_cancel;
+    private TextView text_calories, total_calories, text_foodName;
+
 
     // System Initialize
     @Override
@@ -420,20 +436,20 @@ public class HomePageActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 // custom alert dialog
-                AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
-                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
-                programDialogBuilder.setView(custom_confirm_program);
-                programDialog = programDialogBuilder.create();
-                programDialog.show();
+                AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_dialog, null);
+                confirmDialogBuilder.setView(custom_confirm_program);
+                confirmDialog = confirmDialogBuilder.create();
+                confirmDialog.show();
 
 
                 // alert dialog elements and events
-                text_sports = custom_confirm_program.findViewById(R.id.sports);
-                text_time = custom_confirm_program.findViewById(R.id.text_timer);
-                text_sports.setText(sports);
-                text_time.setText(String.valueOf(count_down_time));
+                text_sports = custom_confirm_program.findViewById(R.id.first_row);
+                text_time = custom_confirm_program.findViewById(R.id.second_row);
                 Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_update);
                 Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
+                text_sports.setText(sports);
+                text_time.setText(String.valueOf(count_down_time));
 
                 // find unique ID in db
                 Task<QuerySnapshot> result = search_programData(email, weekday, sports, count_down_time);
@@ -659,7 +675,7 @@ public class HomePageActivity extends AppCompatActivity {
 
                         Button btn_delete = custom_alert.findViewById(R.id.btn_confirm_logout);
                         Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
-                        TextView intro = custom_alert.findViewById(R.id.confirm_dialog_intro);
+                        TextView intro = custom_alert.findViewById(R.id.alert_dialog_intro);
                         intro.setText(getString(R.string.title_delete));
                         btn_delete.setText(getString(R.string.btn_delete));
 
@@ -686,4 +702,6 @@ public class HomePageActivity extends AppCompatActivity {
             });
         }
     }
+
+    // diet common function
 }
