@@ -36,6 +36,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class HomePageActivity extends AppCompatActivity {
     // Common object
@@ -586,6 +587,21 @@ public class HomePageActivity extends AppCompatActivity {
             }
         });
     }
+    public void delete_exploreData(String userName, String description, String date) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("explore").whereEqualTo("userName", userName)
+                .whereEqualTo("description", description)
+                .whereEqualTo("date", date).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            String docID = result.getId();
+                            db.collection("explore").document(docID).delete();
+                        }
+                    }
+                });
+    }
     public void addIntoExplore(Boolean load_from_db, String userName, String imageUri, String description, String date) {
         if (load_from_db) {
             // objects
@@ -628,6 +644,43 @@ public class HomePageActivity extends AppCompatActivity {
                     else {
                         image_heart.setImageResource(R.drawable.heart_empty);
                         image_heart.setTag("empty");
+                    }
+                }
+            });
+            explore_dtl.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (Objects.equals(currentUser.getDisplayName(), userName)) {
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(HomePageActivity.this);
+                        View custom_alert = getLayoutInflater().inflate(R.layout.custom_alert_dialog, null);
+                        alertDialog.setView(custom_alert);
+                        AlertDialog dialog = alertDialog.create();
+                        dialog.show();
+
+                        Button btn_delete = custom_alert.findViewById(R.id.btn_confirm_logout);
+                        Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
+                        TextView intro = custom_alert.findViewById(R.id.confirm_dialog_intro);
+                        intro.setText(getString(R.string.title_delete));
+                        btn_delete.setText(getString(R.string.btn_delete));
+
+                        btn_delete.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                explore_view.removeView(explore_dtl);
+                                delete_exploreData(userName, description, date);
+                                dialog.dismiss();
+                            }
+                        });
+                        btn_cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.cancel();
+                            }
+                        });
+                        return true;
+                    }
+                    else{
+                        return false;
                     }
                 }
             });
