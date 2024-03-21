@@ -7,7 +7,7 @@
     <string name="btn_signup">Create account</string>
     <string name="btn_login">Login</string>
     <string name="btn_register">Register Account</string>
-    <string name="btn_mart">Mart</string>
+    <string name="btn_diet">Diet</string>
     <string name="btn_program">Program</string>
     <string name="btn_explore">Explore</string>
     <string name="title_setting">Setting</string>
@@ -27,4 +27,8 @@
     <string name="second">Time (s)</string>
     <string name="btn_confirm">Confirm</string>
     <string name="time_0">00:00:00</string>
+    <string name="post">POST</string>
+    <string name="description">description</string>
+    <string name="title_delete">Confirm delete?</string>
+    <string name="btn_delete">Delete</string>
 </resources>
