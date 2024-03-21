@@ -17,6 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -49,12 +51,14 @@ public class SignUpActivity extends AppCompatActivity {
 //            TextInputEditText text_username = findViewById(R.id.text_username);
             TextInputEditText text_email = findViewById(R.id.text_email);
             TextInputEditText text_password = findViewById(R.id.text_password);
+            TextInputEditText text_userName = findViewById(R.id.text_username);
 
 //            String username = String.valueOf(text_username.getText());
             String email = String.valueOf(text_email.getText());
             String password = String.valueOf(text_password.getText());
+            String userName = String.valueOf(text_userName.getText());
 
-            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+            if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(userName)) {
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(SignUpActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
             }
@@ -67,7 +71,15 @@ public class SignUpActivity extends AppCompatActivity {
 
                         if (task.isSuccessful()) {
                             // Sign up success and return back to LoginActivity
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            UserProfileChangeRequest userNameUpdate = new UserProfileChangeRequest.Builder().setDisplayName(userName).build();
+
+                            if (user != null) {
+                                user.updateProfile(userNameUpdate);
+                            }
+
                             Toast.makeText(SignUpActivity.this, "Register Success, your account is created", Toast.LENGTH_SHORT).show();
+                            mAuth.signOut();
                             finish();
                         }
                         else {

@@ -7,8 +7,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,9 +30,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class HomePageActivity extends AppCompatActivity {
     // Common object
@@ -39,11 +45,11 @@ public class HomePageActivity extends AppCompatActivity {
     public int seq;
 
     // home page (base) objects
-    public Button mart, program, explore;
+    public Button diet, program, explore;
     private ConstraintLayout base_view;
 
     // custom_program objects
-    private View layout_program, layout_mart, layout_explore;
+    private View layout_program, layout_diet, layout_explore;
     private LinearLayout program_view;
     public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
@@ -51,102 +57,31 @@ public class HomePageActivity extends AppCompatActivity {
     private TextInputEditText text_sports, text_time;
     private AlertDialog programDialog;
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        groupSetBtnColor(program, new Button[]{mart, explore});
-        changeView(layout_program);
-
-        int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-        switch (CurrentTime) {
-            case 1:
-                sunday.performClick();
-                break;
-            case 2:
-                monday.performClick();
-                break;
-            case 3:
-                tuesday.performClick();
-                break;
-            case 4:
-                wednesday.performClick();
-                break;
-            case 5:
-                thursday.performClick();
-                break;
-            case 6:
-                friday.performClick();
-                break;
-            case 7:
-                saturday.performClick();
-                break;
-        }
-    }
-
-    @SuppressLint("InflateParams")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // System auto-generated
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home_page);
-
-        // Firebase user authentication
-        mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser();
-
-        if (currentUser == null) {
-            startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
-            finish();
-        }
-
-        // home page elements (base)
-        base_view = findViewById(R.id.custom_ConstraintLayout);
-
-        mart = setBtnEvent(null, R.id.btn_mart, btn_mart);
-        program = setBtnEvent(null, R.id.btn_program, btn_program);
-        explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
-
-        // custom_program elements
-        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
-        program_view = layout_program.findViewById(R.id.program_list);
-
-        ImageView setting = setImageViewEvent(layout_program, R.id.setting, btn_setting);
-        monday = setBtnEvent(layout_program, R.id.btn_monday, btn_monday);
-        tuesday = setBtnEvent(layout_program, R.id.btn_tuesday, btn_tuesday);
-        wednesday = setBtnEvent(layout_program, R.id.btn_wednesday, btn_wednesday);
-        thursday = setBtnEvent(layout_program, R.id.btn_thursday, btn_thursday);
-        friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
-        saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
-        sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
-        Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
-
-        // custom_mart elements
-        layout_mart = getLayoutInflater().inflate(R.layout.custom_mart, null);
-
-        // custom_explore elements
-        layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
-    }
-
     // base events
-    public View.OnClickListener btn_mart = new View.OnClickListener() {
+    public View.OnClickListener btn_diet = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(mart, new Button[]{program, explore});
-            changeView(layout_mart);
+            groupSetBtnColor(diet, new Button[]{program, explore});
+            changeView(layout_diet);
+            base_view.setTag("diet");
         }
     };
     public View.OnClickListener btn_program = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(program, new Button[]{mart, explore});
+            groupSetBtnColor(program, new Button[]{diet, explore});
             changeView(layout_program);
+            base_view.setTag("program");
         }
     };
     public View.OnClickListener btn_explore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(explore, new Button[]{mart, program});
+            groupSetBtnColor(explore, new Button[]{diet, program});
             changeView(layout_explore);
+            base_view.setTag("explore");
+            explore_view.removeAllViews();
+            collect_exploreData();
         }
     };
 
@@ -270,6 +205,102 @@ public class HomePageActivity extends AppCompatActivity {
         }
     };
 
+    // custom explore events
+    private LinearLayout explore_view;
+    public View.OnClickListener btn_add_explore = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(HomePageActivity.this, PostActivity.class));
+        }
+    };
+
+    // System Initialize
+    @Override
+    public void onStart() {
+        super.onStart();
+        String tag = String.valueOf(base_view.getTag());
+        if (TextUtils.isEmpty(tag) || tag.equals("program") || tag.equals("null")) {
+            program.performClick();
+
+            int CurrentTime = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+            switch (CurrentTime) {
+                case 1:
+                    sunday.performClick();
+                    break;
+                case 2:
+                    monday.performClick();
+                    break;
+                case 3:
+                    tuesday.performClick();
+                    break;
+                case 4:
+                    wednesday.performClick();
+                    break;
+                case 5:
+                    thursday.performClick();
+                    break;
+                case 6:
+                    friday.performClick();
+                    break;
+                case 7:
+                    saturday.performClick();
+                    break;
+            }
+        }
+        else if (!TextUtils.isEmpty(tag) && tag.equals("explore")) {
+            explore.performClick();
+        }
+        else {
+            diet.performClick();
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // System auto-generated
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home_page);
+
+        // Firebase user authentication
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            startActivity(new Intent(HomePageActivity.this, LoginActivity.class));
+            finish();
+        }
+
+        // home page elements (base)
+        base_view = findViewById(R.id.custom_ConstraintLayout);
+
+        diet = setBtnEvent(null, R.id.btn_diet, btn_diet);
+        program = setBtnEvent(null, R.id.btn_program, btn_program);
+        explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
+
+        // custom_program elements
+        layout_program = getLayoutInflater().inflate(R.layout.custom_program, null);
+        program_view = layout_program.findViewById(R.id.program_list);
+
+        ImageView setting = setImageViewEvent(layout_program, R.id.setting, btn_setting);
+        monday = setBtnEvent(layout_program, R.id.btn_monday, btn_monday);
+        tuesday = setBtnEvent(layout_program, R.id.btn_tuesday, btn_tuesday);
+        wednesday = setBtnEvent(layout_program, R.id.btn_wednesday, btn_wednesday);
+        thursday = setBtnEvent(layout_program, R.id.btn_thursday, btn_thursday);
+        friday = setBtnEvent(layout_program, R.id.btn_friday, btn_friday);
+        saturday = setBtnEvent(layout_program, R.id.btn_saturday, btn_saturday);
+        sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
+        Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
+
+        // custom_diet elements
+        layout_diet = getLayoutInflater().inflate(R.layout.custom_diet, null);
+
+        // custom_explore elements
+        layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
+        explore_view = layout_explore.findViewById(R.id.explore_view);
+        Button add_explore = setBtnEvent(layout_explore, R.id.add_explore, btn_add_explore);
+    }
+
     // Common function
     public Button setBtnEvent(View view , int id, View.OnClickListener event) {
         Button btn;
@@ -322,7 +353,7 @@ public class HomePageActivity extends AppCompatActivity {
 
 
         // objects
-        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.program, null);
+        @SuppressLint("InflateParams") View layout_program_dtl = getLayoutInflater().inflate(R.layout.custom_program_dtl, null);
         TextView sport_name = layout_program_dtl.findViewById(R.id.program_label);
         TextView text_timer = layout_program_dtl.findViewById(R.id.timer);
         ImageView program_playOrStop = layout_program_dtl.findViewById(R.id.btn_timer_control);
@@ -461,8 +492,9 @@ public class HomePageActivity extends AppCompatActivity {
         return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
     }
 
+    // Program common function
     /**
-     *
+     * create program data into database
      * @param email FirebaseUser.getEmail()
      * @param weekday program_view.getTag()
      * @param program Program object
@@ -535,5 +567,123 @@ public class HomePageActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    // Explore common function
+    public void collect_exploreData() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("explore").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot result: task.getResult()) {
+                        addIntoExplore(true,
+                                String.valueOf(result.get("userName")),
+                                String.valueOf(result.get("uri")),
+                                String.valueOf(result.get("description")),
+                                String.valueOf(result.get("date")));
+                    }
+                }
+            }
+        });
+    }
+    public void delete_exploreData(String userName, String description, String date) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("explore").whereEqualTo("userName", userName)
+                .whereEqualTo("description", description)
+                .whereEqualTo("date", date).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            String docID = result.getId();
+                            db.collection("explore").document(docID).delete();
+                        }
+                    }
+                });
+    }
+    public void addIntoExplore(Boolean load_from_db, String userName, String imageUri, String description, String date) {
+        if (load_from_db) {
+            // objects
+            @SuppressLint("InflateParams") View explore_dtl = getLayoutInflater().inflate(R.layout.custom_explore_dtl, null);
+            TextView text_username = explore_dtl.findViewById(R.id.explore_username);
+            TextView text_desc = explore_dtl.findViewById(R.id.explore_description);
+            TextView text_date = explore_dtl.findViewById(R.id.explore_date);
+            ImageView image_heart = explore_dtl.findViewById(R.id.explore_heart);
+
+            FirebaseStorage storage = FirebaseStorage.getInstance();
+            StorageReference refer = storage.getReference().child(imageUri);
+
+            // load image from web storage
+            refer.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        Uri uri = task.getResult();
+
+                        ImageView image = explore_dtl.findViewById(R.id.explore_image);
+                        Picasso.get().load(uri).fit().into(image);
+                    }
+                }
+            });
+
+            // set into textview
+            text_username.setText(userName);
+            text_desc.setText(description);
+            text_date.setText(date);
+            explore_view.addView(explore_dtl);
+
+            // heart onclick
+            image_heart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (String.valueOf(image_heart.getTag()).equals("null") || TextUtils.isEmpty(String.valueOf(image_heart.getTag())) || String.valueOf(image_heart.getTag()).equals("empty")) {
+                        image_heart.setImageResource(R.drawable.heart_full);
+                        image_heart.setTag("full");
+                    }
+                    else {
+                        image_heart.setImageResource(R.drawable.heart_empty);
+                        image_heart.setTag("empty");
+                    }
+                }
+            });
+            explore_dtl.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (Objects.equals(currentUser.getDisplayName(), userName)) {
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(HomePageActivity.this);
+                        View custom_alert = getLayoutInflater().inflate(R.layout.custom_alert_dialog, null);
+                        alertDialog.setView(custom_alert);
+                        AlertDialog dialog = alertDialog.create();
+                        dialog.show();
+
+                        Button btn_delete = custom_alert.findViewById(R.id.btn_confirm_logout);
+                        Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
+                        TextView intro = custom_alert.findViewById(R.id.confirm_dialog_intro);
+                        intro.setText(getString(R.string.title_delete));
+                        btn_delete.setText(getString(R.string.btn_delete));
+
+                        btn_delete.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                explore_view.removeView(explore_dtl);
+                                delete_exploreData(userName, description, date);
+                                dialog.dismiss();
+                            }
+                        });
+                        btn_cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.cancel();
+                            }
+                        });
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            });
+        }
     }
 }

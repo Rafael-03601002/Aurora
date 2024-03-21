@@ -46,15 +46,15 @@
                     android:background="@color/gray_semi_dark">
 
                     <Button
-                        android:id="@+id/btn_mart"
+                        android:id="@+id/btn_diet"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="40dp"
                         android:background="@android:color/transparent"
-                        android:text="@string/btn_mart"
+                        android:text="@string/btn_diet"
                         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                         android:textColor="@color/gray_light"
-                        app:icon="@drawable/cart"
+                        app:icon="@drawable/diet"
                         app:iconGravity="top"
                         app:iconPadding="2dp"
                         app:iconTint="@color/gray_light"
