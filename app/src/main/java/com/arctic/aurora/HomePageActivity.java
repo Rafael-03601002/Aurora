@@ -1,6 +1,5 @@
 package com.arctic.aurora;
 
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,8 +7,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -24,7 +21,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -34,18 +30,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StreamDownloadTask;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Objects;
 
 public class HomePageActivity extends AppCompatActivity {
     // Common object
@@ -54,11 +44,11 @@ public class HomePageActivity extends AppCompatActivity {
     public int seq;
 
     // home page (base) objects
-    public Button mart, program, explore;
+    public Button diet, program, explore;
     private ConstraintLayout base_view;
 
     // custom_program objects
-    private View layout_program, layout_mart, layout_explore;
+    private View layout_program, layout_diet, layout_explore;
     private LinearLayout program_view;
     public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
 
@@ -67,18 +57,18 @@ public class HomePageActivity extends AppCompatActivity {
     private AlertDialog programDialog;
 
     // base events
-    public View.OnClickListener btn_mart = new View.OnClickListener() {
+    public View.OnClickListener btn_diet = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(mart, new Button[]{program, explore});
-            changeView(layout_mart);
-            base_view.setTag("mart");
+            groupSetBtnColor(diet, new Button[]{program, explore});
+            changeView(layout_diet);
+            base_view.setTag("diet");
         }
     };
     public View.OnClickListener btn_program = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(program, new Button[]{mart, explore});
+            groupSetBtnColor(program, new Button[]{diet, explore});
             changeView(layout_program);
             base_view.setTag("program");
         }
@@ -86,7 +76,7 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_explore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            groupSetBtnColor(explore, new Button[]{mart, program});
+            groupSetBtnColor(explore, new Button[]{diet, program});
             changeView(layout_explore);
             base_view.setTag("explore");
             explore_view.removeAllViews();
@@ -260,7 +250,7 @@ public class HomePageActivity extends AppCompatActivity {
             explore.performClick();
         }
         else {
-            mart.performClick();
+            diet.performClick();
         }
     }
 
@@ -283,7 +273,7 @@ public class HomePageActivity extends AppCompatActivity {
         // home page elements (base)
         base_view = findViewById(R.id.custom_ConstraintLayout);
 
-        mart = setBtnEvent(null, R.id.btn_mart, btn_mart);
+        diet = setBtnEvent(null, R.id.btn_diet, btn_diet);
         program = setBtnEvent(null, R.id.btn_program, btn_program);
         explore = setBtnEvent(null, R.id.btn_explore, btn_explore);
 
@@ -301,8 +291,8 @@ public class HomePageActivity extends AppCompatActivity {
         sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
         Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
 
-        // custom_mart elements
-        layout_mart = getLayoutInflater().inflate(R.layout.custom_mart, null);
+        // custom_diet elements
+        layout_diet = getLayoutInflater().inflate(R.layout.custom_diet, null);
 
         // custom_explore elements
         layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
