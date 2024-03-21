@@ -16,7 +16,7 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/textView4"
+                android:id="@+id/dialog_intro"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
@@ -38,7 +38,7 @@
                 android:textColorHint="@color/gray"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/textView4">
+                app:layout_constraintTop_toBottomOf="@id/dialog_intro">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/sports"

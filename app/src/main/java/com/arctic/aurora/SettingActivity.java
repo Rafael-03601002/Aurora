@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -38,6 +39,9 @@ public class SettingActivity extends AppCompatActivity {
             dialog.show();
             Button btn_confirm = custom_alert.findViewById(R.id.btn_confirm_logout);
             Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
+            TextView intro = custom_alert.findViewById(R.id.confirm_dialog_intro);
+            intro.setText(getString(R.string.title_logout));
+
             btn_confirm.setOnClickListener(btn_confirm_logout);
             btn_cancel.setOnClickListener(btn_cancel_logout);
         }
