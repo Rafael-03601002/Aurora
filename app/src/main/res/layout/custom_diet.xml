@@ -33,90 +33,91 @@
                     android:layout_height="match_parent">
 
                     <Button
-                        android:id="@+id/btn_diet_monday"
+                        android:id="@+id/btn_diet_6"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:background="@android:color/transparent"
-                        android:text="@string/monday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_tuesday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_5"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_tuesday"
+                        android:id="@+id/btn_diet_5"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:text="@string/tuesday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_wednesday"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_monday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_4"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_6"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_wednesday"
+                        android:id="@+id/btn_diet_4"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:text="@string/wednesday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_thursday"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_tuesday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_3"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_5"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_thursday"
+                        android:id="@+id/btn_diet_3"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:text="@string/thursday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_friday"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_wednesday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_2"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_4"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_friday"
+                        android:id="@+id/btn_diet_2"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:text="@string/friday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_saturday"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_thursday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_1"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_3"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_saturday"
+                        android:id="@+id/btn_diet_1"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:text="@string/saturday"
+                        android:text=""
                         android:textColor="@color/gray_light"
-                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_sunday"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_friday"
+                        app:layout_constraintEnd_toStartOf="@+id/btn_diet_today"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_2"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
-                        android:id="@+id/btn_diet_sunday"
+                        android:id="@+id/btn_diet_today"
                         style="@style/Widget.MaterialComponents.TimePicker.Button"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="16dp"
                         android:background="@android:color/transparent"
-                        android:text="@string/sunday"
+                        android:text=""
                         android:textColor="@color/gray_light"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/btn_diet_saturday"
+                        app:layout_constraintStart_toEndOf="@id/btn_diet_1"
                         app:layout_constraintTop_toTopOf="parent" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>

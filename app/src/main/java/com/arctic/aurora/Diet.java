@@ -2,9 +2,9 @@ package com.arctic.aurora;
 
 public class Diet {
     private final String name;
-    private final float calories;
+    private final int calories;
 
-    public Diet(String name, float calories) {
+    public Diet(String name, int calories) {
         this.name = name;
         this.calories = calories;
     }
@@ -12,8 +12,7 @@ public class Diet {
     public String getName() {
         return name;
     }
-
-    public float getCalories() {
+    public int getCalories() {
         return calories;
     }
 }
