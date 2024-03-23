@@ -6,10 +6,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -647,6 +650,11 @@ public class HomePageActivity extends AppCompatActivity {
                 text_timer.setText(R.string.time_0);
                 program_playOrStop.setTag("ready");
                 program_playOrStop.setImageResource(R.drawable.play);
+
+                // vibrate device
+                Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                vibrator.vibrate(VibrationEffect.createOneShot(1500, VibrationEffect.DEFAULT_AMPLITUDE));
+
                 long hours = (time / 1000) / 3600;
                 long minutes = ((time / 1000) % 3600) / 60;
                 long seconds = (time / 1000) % 60;
