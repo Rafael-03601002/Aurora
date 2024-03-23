@@ -34,7 +34,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -42,20 +45,28 @@ public class HomePageActivity extends AppCompatActivity {
     // Common object
     public FirebaseAuth mAuth;
     public FirebaseUser currentUser;
-    public int seq;
 
-    // home page (base) objects
+    // base objects
     public Button diet, program, explore;
     private ConstraintLayout base_view;
+    private View layout_program, layout_diet, layout_explore;
+    private AlertDialog confirmDialog;
+    private LinearLayout program_view;
+    private LinearLayout explore_view;
+    private LinearLayout diet_view;
 
     // custom_program objects
-    private View layout_program, layout_diet, layout_explore;
-    private LinearLayout program_view;
     public Button monday, tuesday, wednesday, thursday, friday, saturday, sunday;
+
+    // custom_diet objects
+    public Button diet_6, diet_5, diet_4, diet_3, diet_2, diet_1, diet_today;
+    private TextView total_calories;
 
     // confirm_program_dialog objects
     private TextInputEditText text_sports, text_time;
-    private AlertDialog programDialog;
+
+    // confirm_diet_dialog objects
+    private TextInputEditText foodName, calories_input;
 
     // base events
     public View.OnClickListener btn_diet = new View.OnClickListener() {
@@ -64,6 +75,16 @@ public class HomePageActivity extends AppCompatActivity {
             groupSetBtnColor(diet, new Button[]{program, explore});
             changeView(layout_diet);
             base_view.setTag("diet");
+            diet_6.setText(String.valueOf(getDateNum(-6)));
+            diet_5.setText(String.valueOf(getDateNum(-5)));
+            diet_4.setText(String.valueOf(getDateNum(-4)));
+            diet_3.setText(String.valueOf(getDateNum(-3)));
+            diet_2.setText(String.valueOf(getDateNum(-2)));
+            diet_1.setText(String.valueOf(getDateNum(-1)));
+            diet_today.setText(String.valueOf(getDateNum(0)));
+            total_calories.setText("0");
+
+            diet_today.performClick();
         }
     };
     public View.OnClickListener btn_program = new View.OnClickListener() {
@@ -160,15 +181,15 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             // custom alert dialog
-            AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
-            View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
-            programDialogBuilder.setView(custom_confirm_program);
-            programDialog = programDialogBuilder.create();
-            programDialog.show();
+            AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+            View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_dialog, null);
+            confirmDialogBuilder.setView(custom_confirm_program);
+            confirmDialog = confirmDialogBuilder.create();
+            confirmDialog.show();
 
             // alert dialog elements and events
-            text_sports = custom_confirm_program.findViewById(R.id.sports);
-            text_time = custom_confirm_program.findViewById(R.id.text_timer);
+            text_sports = custom_confirm_program.findViewById(R.id.first_row);
+            text_time = custom_confirm_program.findViewById(R.id.second_row);
             Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_add);
             Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
         }
@@ -176,43 +197,184 @@ public class HomePageActivity extends AppCompatActivity {
     public View.OnClickListener btn_dialog_confirm_add = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String sports_name = String.valueOf(text_sports.getText());
-            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+            if (!TextUtils.isEmpty(text_sports.getText()) && !TextUtils.isEmpty(text_time.getText())) {
+                String sports_name = String.valueOf(text_sports.getText());
+                int timer = Integer.parseInt(String.valueOf(text_time.getText()));
 
-            addIntoProgram(false, sports_name, timer);
-            programDialog.dismiss();    // same as dialog.cancel()
+                addIntoProgram(false, sports_name, timer);
+                confirmDialog.dismiss();    // same as dialog.cancel()
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
         }
     };
     public View.OnClickListener btn_dialog_cancel = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            programDialog.cancel();
+            confirmDialog.cancel();
         }
     };
     public View.OnClickListener btn_dialog_confirm_update = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String email = currentUser.getEmail();
-            String weekday = String.valueOf(program_view.getTag());
-            String sports_name = String.valueOf(text_sports.getText());
-            int timer = Integer.parseInt(String.valueOf(text_time.getText()));
-            String docID = String.valueOf(v.getTag());
+            if (!TextUtils.isEmpty(text_sports.getText()) && !TextUtils.isEmpty(text_time.getText())) {
+                String email = currentUser.getEmail();
+                String weekday = String.valueOf(program_view.getTag());
+                String sports_name = String.valueOf(text_sports.getText());
+                int timer = Integer.parseInt(String.valueOf(text_time.getText()));
+                String docID = String.valueOf(v.getTag());
 
-            update_programData(email, weekday, docID, sports_name, timer);
-            program_view.removeAllViews();
-            collect_currentDay_programData(email, weekday);
-            programDialog.dismiss();
+                update_programData(email, weekday, docID, sports_name, timer);
+                program_view.removeAllViews();
+                collect_currentDay_programData(email, weekday);
+                confirmDialog.dismiss();
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
         }
     };
 
     // custom explore events
-    private LinearLayout explore_view;
     public View.OnClickListener btn_add_explore = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             startActivity(new Intent(HomePageActivity.this, PostActivity.class));
         }
     };
+
+    // custom diet events
+    public View.OnClickListener btn_diet_6 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_6, new Button[]{diet_5, diet_4, diet_3, diet_2, diet_1, diet_today});
+            String date = getDate(Calendar.DATE, -6);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_5 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_5, new Button[]{diet_6, diet_4, diet_3, diet_2, diet_1, diet_today});
+            String date = getDate(Calendar.DATE, -5);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_4 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_4, new Button[]{diet_6, diet_5, diet_3, diet_2, diet_1, diet_today});
+            String date = getDate(Calendar.DATE, -4);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_3 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_3, new Button[]{diet_6, diet_5, diet_4, diet_2, diet_1, diet_today});
+            String date = getDate(Calendar.DATE, -3);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_2 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_2, new Button[]{diet_6, diet_5, diet_4, diet_3, diet_1, diet_today});
+            String date = getDate(Calendar.DATE, -2);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_1 = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_1, new Button[]{diet_6, diet_5, diet_4, diet_3, diet_2, diet_today});
+            String date = getDate(Calendar.DATE, -1);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_diet_today = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            total_calories.setText("0");
+            groupSetBtnColor(diet_today, new Button[]{diet_6, diet_5, diet_4, diet_3, diet_2, diet_1});
+            String date = getDate(Calendar.DATE, 0);
+            diet_view.removeAllViews();
+            diet_view.setTag(date);
+            collect_currentDay_dietData(currentUser.getEmail(), date);
+        }
+    };
+    public View.OnClickListener btn_add_diet = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // custom alert dialog
+            AlertDialog.Builder dietDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+            View custom_diet_dialog = getLayoutInflater().inflate(R.layout.custom_diet_confirm_dialog, null);
+            dietDialogBuilder.setView(custom_diet_dialog);
+            confirmDialog = dietDialogBuilder.create();
+            confirmDialog.show();
+
+            // alert dialog elements and events
+            foodName = custom_diet_dialog.findViewById(R.id.diet_first_row);
+            calories_input = custom_diet_dialog.findViewById(R.id.diet_second_row);
+            Button confirm = setBtnEvent(custom_diet_dialog, R.id.btn_diet_dialog_confirm, btn_diet_dialog_add);
+            Button cancel = setBtnEvent(custom_diet_dialog, R.id.btn_diet_dialog_cancel, btn_dialog_cancel);
+        }
+    };
+    public View.OnClickListener btn_diet_dialog_add = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!TextUtils.isEmpty(foodName.getText()) && !TextUtils.isEmpty(calories_input.getText())) {
+                String str_foodName = String.valueOf(foodName.getText());
+                int calories = Integer.parseInt(String.valueOf(calories_input.getText()));
+
+                addIntoDiet(false, str_foodName, calories);
+                confirmDialog.dismiss();
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+    public View.OnClickListener btn_diet_dialog_update = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!TextUtils.isEmpty(foodName.getText()) && !TextUtils.isEmpty(calories_input.getText())) {
+                String email = currentUser.getEmail();
+                String date = String.valueOf(diet_view.getTag());
+                String docID = String.valueOf(v.getTag());
+                String str_foodName = String.valueOf(foodName.getText());
+                int calories = Integer.parseInt(String.valueOf(calories_input.getText()));
+
+                update_dietData(email, date,docID, str_foodName, calories);
+                diet_view.removeAllViews();
+                collect_currentDay_dietData(email, date);
+                confirmDialog.dismiss();
+            }
+            else {
+                Toast.makeText(HomePageActivity.this, "Please fill in all the fields", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
 
     // System Initialize
     @Override
@@ -252,6 +414,9 @@ public class HomePageActivity extends AppCompatActivity {
         }
         else {
             diet.performClick();
+
+            // initial setting: today
+            diet_today.performClick();
         }
     }
 
@@ -292,13 +457,26 @@ public class HomePageActivity extends AppCompatActivity {
         sunday = setBtnEvent(layout_program, R.id.btn_sunday, btn_sunday);
         Button add_program = setBtnEvent(layout_program, R.id.add_program, btn_add_program);
 
-        // custom_diet elements
-        layout_diet = getLayoutInflater().inflate(R.layout.custom_diet, null);
-
         // custom_explore elements
         layout_explore = getLayoutInflater().inflate(R.layout.custom_explore, null);
         explore_view = layout_explore.findViewById(R.id.explore_view);
+
         Button add_explore = setBtnEvent(layout_explore, R.id.add_explore, btn_add_explore);
+
+        // custom_diet elements
+        layout_diet = getLayoutInflater().inflate(R.layout.custom_diet, null);
+        diet_view = layout_diet.findViewById(R.id.diet_list);
+
+        ImageView dietSetting = setImageViewEvent(layout_diet, R.id.diet_setting, btn_setting);
+        total_calories = layout_diet.findViewById(R.id.text_totalCalories);
+        diet_6 = setBtnEvent(layout_diet, R.id.btn_diet_6, btn_diet_6);
+        diet_5 = setBtnEvent(layout_diet, R.id.btn_diet_5, btn_diet_5);
+        diet_4 = setBtnEvent(layout_diet, R.id.btn_diet_4, btn_diet_4);
+        diet_3 = setBtnEvent(layout_diet, R.id.btn_diet_3, btn_diet_3);
+        diet_2 = setBtnEvent(layout_diet, R.id.btn_diet_2, btn_diet_2);
+        diet_1 = setBtnEvent(layout_diet, R.id.btn_diet_1, btn_diet_1);
+        diet_today = setBtnEvent(layout_diet, R.id.btn_diet_today, btn_diet_today);
+        Button add_diet = setBtnEvent(layout_diet, R.id.add_diet, btn_add_diet);
     }
 
     // Common function
@@ -420,20 +598,20 @@ public class HomePageActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v) {
                 // custom alert dialog
-                AlertDialog.Builder programDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
-                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_program_dialog, null);
-                programDialogBuilder.setView(custom_confirm_program);
-                programDialog = programDialogBuilder.create();
-                programDialog.show();
+                AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+                View custom_confirm_program = getLayoutInflater().inflate(R.layout.custom_confirm_dialog, null);
+                confirmDialogBuilder.setView(custom_confirm_program);
+                confirmDialog = confirmDialogBuilder.create();
+                confirmDialog.show();
 
 
                 // alert dialog elements and events
-                text_sports = custom_confirm_program.findViewById(R.id.sports);
-                text_time = custom_confirm_program.findViewById(R.id.text_timer);
-                text_sports.setText(sports);
-                text_time.setText(String.valueOf(count_down_time));
+                text_sports = custom_confirm_program.findViewById(R.id.first_row);
+                text_time = custom_confirm_program.findViewById(R.id.second_row);
                 Button confirm = setBtnEvent(custom_confirm_program, R.id.btn_dialog_confirm, btn_dialog_confirm_update);
                 Button cancel = setBtnEvent(custom_confirm_program, R.id.btn_dialog_cancel, btn_dialog_cancel);
+                text_sports.setText(sports);
+                text_time.setText(String.valueOf(count_down_time));
 
                 // find unique ID in db
                 Task<QuerySnapshot> result = search_programData(email, weekday, sports, count_down_time);
@@ -491,17 +669,28 @@ public class HomePageActivity extends AppCompatActivity {
 
         return ((hours * 3600L) + (minutes * 60L) + seconds) * 1000L;
     }
+    public String getDate(int unit, int interval) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(unit, interval);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return format.format(calendar.getTime());
+    }
+    public int getDateNum(int interval) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, interval);
+        return calendar.get(Calendar.DATE);
+    }
 
     // Program common function
     /**
      * create program data into database
      * @param email FirebaseUser.getEmail()
      * @param weekday program_view.getTag()
-     * @param program Program object
+     * @param custom_program Program object
      */
-    public void create_programData(String email, String weekday, Program program) {
+    public void create_programData(String email, String weekday, Program custom_program) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("program").document(email).collection(weekday).add(program)
+        db.collection("program").document(email).collection(weekday).add(custom_program)
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -659,7 +848,7 @@ public class HomePageActivity extends AppCompatActivity {
 
                         Button btn_delete = custom_alert.findViewById(R.id.btn_confirm_logout);
                         Button btn_cancel = custom_alert.findViewById(R.id.btn_cancel);
-                        TextView intro = custom_alert.findViewById(R.id.confirm_dialog_intro);
+                        TextView intro = custom_alert.findViewById(R.id.alert_dialog_intro);
                         intro.setText(getString(R.string.title_delete));
                         btn_delete.setText(getString(R.string.btn_delete));
 
@@ -685,5 +874,141 @@ public class HomePageActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    // diet common function
+    public void collect_currentDay_dietData(String email, String date) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("diet").document(email).collection(date).get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot result : task.getResult()) {
+                                addIntoDiet(true, String.valueOf(result.get("name")), Integer.parseInt(String.valueOf(result.get("calories"))));
+                            }
+                        }
+                    }
+                });
+    }
+    public void addIntoDiet(Boolean load_from_db, String name, int calories) {
+        String email = currentUser.getEmail();
+        String date = String.valueOf(diet_view.getTag());
+        if (!load_from_db) {
+            Diet custom_diet = new Diet(name, calories);
+            create_dietData(email, date, custom_diet);
+        }
+
+        // objects
+        @SuppressLint("InflateParams") View layout_diet_dtl = getLayoutInflater().inflate(R.layout.custom_diet_dtl, null);
+        TextView text_foodName = layout_diet_dtl.findViewById(R.id.text_foodname);
+        TextView text_calories = layout_diet_dtl.findViewById(R.id.text_calories);
+        ImageView diet_delete = layout_diet_dtl.findViewById(R.id.diet_dtl_delete);
+
+        text_foodName.setText(name);
+        text_calories.setText(String.valueOf(calories));
+        diet_view.addView(layout_diet_dtl);
+        calculate_total_calories(calories, "add");
+
+        // events
+        diet_delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                delete_dietData(email, date, name, calories);
+                diet_view.removeView(layout_diet_dtl);
+            }
+        });
+        layout_diet_dtl.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // custom alert dialog
+                AlertDialog.Builder dietUpdateDialogBuilder = new AlertDialog.Builder(HomePageActivity.this);
+                View custom_diet_dialog = getLayoutInflater().inflate(R.layout.custom_diet_confirm_dialog, null);
+                dietUpdateDialogBuilder.setView(custom_diet_dialog);
+                confirmDialog = dietUpdateDialogBuilder.create();
+                confirmDialog.show();
+
+                // alert dialog elements and events
+                foodName = custom_diet_dialog.findViewById(R.id.diet_first_row);
+                calories_input = custom_diet_dialog.findViewById(R.id.diet_second_row);
+                Button confirm = setBtnEvent(custom_diet_dialog, R.id.btn_diet_dialog_confirm, btn_diet_dialog_update);
+                Button cancel = setBtnEvent(custom_diet_dialog, R.id.btn_diet_dialog_cancel, btn_dialog_cancel);
+                foodName.setText(name);
+                calories_input.setText(String.valueOf(calories));
+
+                // find unique ID in db
+                Task<QuerySnapshot> result = search_dietData(email, date, name, calories);
+                result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                            confirm.setTag(result.getId());
+                        }
+                    }
+                });
+                return true;
+            }
+        });
+
+    }
+    public void create_dietData(String email, String date, Diet custom_diet) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("diet").document(email).collection(date).add(custom_diet)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(HomePageActivity.this, "Failed to create into database", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    public void delete_dietData(String email, String date, String name, int calories) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Task<QuerySnapshot> result = search_dietData(email, date, name, calories);
+        result.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                    calculate_total_calories(calories, "minus");
+                    DocumentSnapshot result = task.getResult().getDocuments().get(0);
+                    String docID = result.getId();
+                    db.collection("diet").
+                            document(email).collection(date).document(docID).delete();
+                }
+            }
+        });
+    }
+    public void update_dietData(String email, String date, String docID, String new_name, int new_calories) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("diet").document(email).collection(date).document(docID).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            int origin_calories = Integer.parseInt(String.valueOf(task.getResult().get("calories")));
+                            calculate_total_calories(new_calories - origin_calories, "add");
+                        }
+                    }
+                });
+
+        // update
+        db.collection("diet").document(email).collection(date).document(docID)
+                .update("name", new_name, "calories", new_calories);
+    }
+    public Task<QuerySnapshot> search_dietData(String email, String date, String name, int calories) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        return db.collection("diet").document(email).collection(date).
+                whereEqualTo("name", name).whereEqualTo("calories", calories).get();
+    }
+    public void calculate_total_calories(int calories, @NonNull String oper) {
+        int current_total = Integer.parseInt(String.valueOf(total_calories.getText()));
+        int total;
+        if (oper.equals("add")) {
+            total = current_total + calories;
+        }
+        else {
+            total = current_total - calories;
+        }
+        total_calories.setText(String.valueOf(total));
     }
 }
