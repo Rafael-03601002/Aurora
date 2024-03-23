@@ -1008,10 +1008,10 @@ public class HomePageActivity extends AppCompatActivity {
         return db.collection("diet").document(email).collection(date).
                 whereEqualTo("name", name).whereEqualTo("calories", calories).get();
     }
-    public void calculate_total_calories(int calories, @NonNull String oper) {
+    public void calculate_total_calories(int calories, @NonNull String operator) {
         int current_total = Integer.parseInt(String.valueOf(total_calories.getText()));
         int total;
-        if (oper.equals("add")) {
+        if (operator.equals("add")) {
             total = current_total + calories;
         }
         else {
