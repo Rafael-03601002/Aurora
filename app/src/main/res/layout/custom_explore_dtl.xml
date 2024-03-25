@@ -31,9 +31,10 @@
     <ImageView
         android:id="@+id/explore_image"
         android:layout_width="0dp"
-        android:layout_height="350dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+        android:adjustViewBounds="true"
         android:src="@drawable/image_120"
         app:layout_constraintBottom_toTopOf="@+id/explore_heart"
         app:layout_constraintEnd_toEndOf="parent"
