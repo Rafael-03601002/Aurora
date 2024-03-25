@@ -819,7 +819,7 @@ public class HomePageActivity extends AppCompatActivity {
                         Uri uri = task.getResult();
 
                         ImageView image = explore_dtl.findViewById(R.id.explore_image);
-                        Picasso.get().load(uri).fit().into(image);
+                        Picasso.get().load(uri).into(image);
                     }
                 }
             });
